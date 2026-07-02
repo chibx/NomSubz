@@ -1,5 +1,8 @@
 import * as v from "valibot";
 
+const httpRegex =
+    /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$/;
+
 export const RegisterSchema = v.pipe(
     v.object({
         appName: v.pipe(
@@ -18,7 +21,7 @@ export const RegisterSchema = v.pipe(
             v.minLength(8, "Password should be a minimum of 8 characters"),
             v.maxLength(30, "Password should be a maximum of 30 characters"),
         ),
-        logoUrl: v.optional(v.pipe(v.string(), v.url("Logo should be a URL"))),
+        logoUrl: v.optional(v.pipe(v.string(), v.regex(httpRegex, "Logo should be a URL"))),
     }),
 );
 
@@ -60,4 +63,8 @@ export const AddCardDetailsSchema = v.object({
     cardNumber: v.pipe(v.string(), v.digits()),
     cardPin: v.number(),
     phoneNumber: v.pipe(v.string(), v.regex(/^\+?[1-9]\d{1,14}$/)),
+});
+
+export const AddWebhookUrlSchema = v.object({
+    webhookUrl: v.pipe(v.string(), v.regex(httpRegex, "Invalid webhook url")),
 });

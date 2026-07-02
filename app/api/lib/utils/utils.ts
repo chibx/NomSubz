@@ -61,6 +61,7 @@ export function dateToString(date: Date | null): string | null {
     return null;
 }
 
+/** A function that returns a Golang like function return */
 export function toGoErrorRet<T, A extends unknown[]>(
     fn: (...args: A) => T,
 ): (...args: A) => Promise<[Awaited<T>, null] | [null, Error]> {

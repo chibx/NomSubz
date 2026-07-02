@@ -2,6 +2,9 @@ import { createConsola, LogLevels } from "consola";
 import { Epoch, Snowyflake } from "snowyflake";
 import { PgBoss } from "pg-boss";
 import { databaseUrl, isDebug } from "./env";
+import { subscriptionDurations } from "./constants";
+import { ParsedDbError, ParsedDbErrorType, PlanType } from "../types/types";
+import { DatabaseError } from "pg";
 
 export class ValidationError {
     field: string;
@@ -76,3 +79,73 @@ export function toGoErrorRet<T, A extends unknown[]>(
 }
 
 export const safeFormdata = toGoErrorRet((request: Request) => request.formData());
+
+/**
+ * Traverses the error to extract the raw node-postgres DatabaseError
+ */
+export function extractPgError(error: unknown): DatabaseError | null {
+    if (error instanceof DatabaseError) {
+        return error;
+    }
+
+    if (error && typeof error === "object" && "cause" in error && error.cause instanceof DatabaseError) {
+        return error.cause;
+    }
+
+    return null;
+}
+
+export function parseDrizzleError(error: unknown): ParsedDbError | null {
+    const pgError = extractPgError(error);
+
+    if (!pgError) {
+        return null; // Not a Postgres database error (e.g. network timeout or syntax error)
+    }
+
+    switch (pgError.code) {
+        case "23505": // unique_violation
+            return {
+                type: ParsedDbErrorType.UNIQUE_VIOLATION,
+                message: "A record with this identifier already exists.",
+                detail: pgError.detail, // e.g., "Key (email)=(user@example.com) already exists."
+                table: pgError.table,
+                constraint: pgError.constraint,
+            };
+
+        case "23503": // foreign_key_violation
+            return {
+                type: ParsedDbErrorType.FOREIGN_KEY_VIOLATION,
+                message: "This operation references a record that does not exist.",
+                detail: pgError.detail,
+                table: pgError.table,
+                constraint: pgError.constraint,
+            };
+
+        case "23502": // not_null_violation
+            return {
+                type: ParsedDbErrorType.NOT_NULL_VIOLATION,
+                message: `The field for column "${pgError.column}" cannot be null.`,
+                table: pgError.table,
+                column: pgError.column,
+            };
+
+        case "23514": // check_violation
+            return {
+                type: ParsedDbErrorType.CHECK_VIOLATION,
+                message: "The data provided violates an application check constraint.",
+                table: pgError.table,
+                constraint: pgError.constraint,
+            };
+
+        default:
+            return {
+                type: ParsedDbErrorType.UNKNOWN_DB_ERROR,
+                message: pgError.message || "An unhandled database exception occurred.",
+                detail: pgError.detail,
+            };
+    }
+}
+
+export function addWithSubscriptionDuration(currentDate: Date, durationType: PlanType) {
+    return new Date(currentDate.getTime() + subscriptionDurations[durationType]);
+}

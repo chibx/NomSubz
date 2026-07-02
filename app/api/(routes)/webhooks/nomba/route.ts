@@ -7,8 +7,7 @@ import { WebHookTypes, WebHookVariants } from "@/app/api/lib/types/types";
 import { EventType } from "@/app/api/lib/nomba-client/types";
 import { doPlanSubscriptionWebHook, doPlanUpgradeWebHook } from "./webhook";
 
-//  Allow downstream product teams to register their own URLs here, so your engine
-//  can send them events like subscription.created or subscription.past_due .
+// The endpoint Nomba hits when an asynchronous payment succeeds or fails.
 export async function POST(req: NextRequest) {
     logger.debug("NOMBA WEBHOOK RECEIVED");
     const signature = req.headers.get("nomba-signature");

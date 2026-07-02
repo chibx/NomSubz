@@ -50,3 +50,15 @@ export type GetSubscriptionResponse = {
     planName: string;
     planType: PlanType;
 };
+
+export type ListPlansResponse = {
+    id: string;
+    name: string;
+    amount: string;
+    currency: string;
+    status: "enabled" | "disabled";
+    type: "weekly" | "monthly" | "annually";
+    details: unknown;
+    createdAt: string;
+    updatedAt: string;
+}

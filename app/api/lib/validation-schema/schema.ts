@@ -68,3 +68,12 @@ export const AddCardDetailsSchema = v.object({
 export const AddWebhookUrlSchema = v.object({
     webhookUrl: v.pipe(v.string(), v.regex(httpRegex, "Invalid webhook url")),
 });
+
+export const CreateSubscriptionPlanSchema = v.object({
+    name: v.string(),
+    amount: v.number(),
+    currency: v.string(),
+    status: v.optional(v.pipe(v.string(), v.picklist(["enabled", "disabled"]))),
+    type: v.pipe(v.string(), v.picklist(["weekly", "monthly", "annually"])),
+    details: v.optional(v.unknown()),
+})

@@ -5,6 +5,7 @@ import { databaseUrl, isDebug } from "./env";
 import { subscriptionDurations } from "./constants";
 import { ParsedDbError, ParsedDbErrorType, PlanType } from "../types/types";
 import { DatabaseError } from "pg";
+import { isValiError } from "valibot";
 
 export class ValidationError {
     field: string;
@@ -79,6 +80,17 @@ export function toGoErrorRet<T, A extends unknown[]>(
 }
 
 export const safeFormdata = toGoErrorRet((request: Request) => request.formData());
+
+export function toValidationError(error: Error) {
+    if (!isValiError(error)) return;
+    const validationErrors: ValidationError[] = [];
+
+    for (const iss of error.issues) {
+        validationErrors.push(new ValidationError((iss.path?.[0].key as string) || "", iss.message));
+    }
+
+    return validationErrors;
+}
 
 /**
  * Traverses the error to extract the raw node-postgres DatabaseError

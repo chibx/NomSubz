@@ -1,5 +1,5 @@
 import { InferEnum } from "drizzle-orm";
-import { planTypeEnum } from "../db/schema";
+import { planTypeEnum } from "../db/enums";
 
 export type NullT<T> = T | null;
 

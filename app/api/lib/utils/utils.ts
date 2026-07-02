@@ -50,6 +50,17 @@ export function getEnv(key: string, defaultStr?: string): string {
     return value as string;
 }
 
+export function dateToString(date: Date): string;
+export function dateToString(date: null): null;
+export function dateToString(date: Date | null): string | null;
+
+export function dateToString(date: Date | null): string | null {
+    if (date) {
+        return date.toISOString();
+    }
+    return null;
+}
+
 export function toGoErrorRet<T, A extends unknown[]>(
     fn: (...args: A) => T,
 ): (...args: A) => Promise<[Awaited<T>, null] | [null, Error]> {

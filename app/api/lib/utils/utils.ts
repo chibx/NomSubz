@@ -6,6 +6,11 @@ import { subscriptionDurations } from "./constants";
 import { ParsedDbError, ParsedDbErrorType, PlanType } from "../types/types";
 import { DatabaseError } from "pg";
 import { isValiError } from "valibot";
+import { StructuredResponse } from "../types/response";
+import { NextResponse } from "next/server";
+import { subscribers } from "../db/schema";
+import { and, eq, sql } from "drizzle-orm";
+import { appDB } from "../db/db";
 
 export class ValidationError {
     field: string;
@@ -86,6 +91,22 @@ export function toGoErrorRet<T, A extends unknown[]>(
 
 export const safeFormdata = toGoErrorRet((request: Request) => request.formData());
 
+export function structuredResponse<T>(
+    status: number,
+    message: string,
+    data: T | null = {} as T,
+    errors?: ValidationError[],
+) {
+    const resp: StructuredResponse<T> = {
+        status,
+        message,
+        errors,
+        data: data,
+    };
+
+    return NextResponse.json(resp, { status: status, statusText: message });
+}
+
 export function toValidationError(error: Error) {
     if (!isValiError(error)) return;
     const validationErrors: ValidationError[] = [];
@@ -96,6 +117,21 @@ export function toValidationError(error: Error) {
 
     return validationErrors;
 }
+
+export const isSubscriberForApp = toGoErrorRet(async (appId: string, subscriberId: bigint) => {
+    let result = false;
+    const b = await appDB
+        .select({
+            a: sql<number>`1`,
+        })
+        .from(subscribers)
+        .where(and(eq(subscribers.appId, appId), eq(subscribers.subscriberId, subscriberId)));
+
+    if (b.length > 0) {
+        result = true;
+    }
+    return result;
+});
 
 /**
  * Traverses the error to extract the raw node-postgres DatabaseError

@@ -73,3 +73,5 @@ export function toGoErrorRet<T, A extends unknown[]>(
         }
     };
 }
+
+export const safeFormdata = toGoErrorRet((request: Request) => request.formData());

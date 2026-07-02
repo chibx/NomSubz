@@ -16,6 +16,7 @@ import {
     smallint,
     integer,
     check,
+    json,
 } from "drizzle-orm/pg-core";
 import { snowflake } from "../utils/utils";
 import { AnalyticsPeriodType, CardConfirmationStatus } from "../types/types";
@@ -41,6 +42,8 @@ export const applications = pgTable(
         amount: decimal("amount", { precision: 15, scale: 4, mode: "string" }),
         isEmailVerified: boolean("is_email_verified").default(false),
         is2FAEnabled: boolean("is_2fa_enabled").default(false),
+        webhookUrl: text("webhook_url"),
+        settings: json("settings").default({}),
     },
     (table) => [
         uniqueIndex("apps_email_idx").on(table.email),

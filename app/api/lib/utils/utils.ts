@@ -54,6 +54,11 @@ export function getEnv(key: string, defaultStr?: string): string {
     return value as string;
 }
 
+export function addToDate(ms: number, date?: Date): Date {
+    const milli = date ? date.getTime() : new Date().getTime();
+    return new Date(milli + ms);
+}
+
 export function dateToString(date: Date): string;
 export function dateToString(date: null): null;
 export function dateToString(date: Date | null): string | null;

@@ -1,4 +1,5 @@
 - Generate basic Drizzle database (PostgreSQL) schema and structure
 - Add strong auth layer 
 - Add personalized Nomba Client SDK (as there was no Node.js one online)
+- Add the feature to save subscribers card for future subscriptions
 - 

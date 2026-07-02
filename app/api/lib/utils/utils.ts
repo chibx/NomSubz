@@ -1,7 +1,7 @@
 import { createConsola, LogLevels } from "consola";
 import { Epoch, Snowyflake } from "snowyflake";
 import { PgBoss } from "pg-boss";
-import { databaseUrl, isDebug } from "./env";
+import { databaseUrl, isDebug, nombaAccountId, nombaClientId, nombaClientSecret } from "./env";
 import { subscriptionDurations } from "./constants";
 import { ParsedDbError, ParsedDbErrorType, PlanType } from "../types/types";
 import { DatabaseError } from "pg";
@@ -11,6 +11,7 @@ import { NextResponse } from "next/server";
 import { subscribers } from "../db/schema";
 import { and, eq, sql } from "drizzle-orm";
 import { appDB } from "../db/db";
+import { NombaClient } from "../nomba-client";
 
 export class ValidationError {
     field: string;
@@ -28,6 +29,12 @@ export class FriendlyError extends Error {
         this.code = code;
     }
 }
+
+export const nombaClient = new NombaClient({
+    accountId: nombaAccountId,
+    clientId: nombaClientId,
+    clientSecret: nombaClientSecret,
+});
 
 export const pgBoss = new PgBoss({
     connectionString: databaseUrl,

@@ -8,6 +8,7 @@ const pool = new Pool({
     connectionString: databaseUrl,
     application_name: APP_NAME,
     keepAlive: true,
+    ssl: true,
 });
 
 export const appDB = drizzle({ client: pool, logger: isDebug, schema });

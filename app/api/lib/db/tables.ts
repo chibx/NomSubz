@@ -186,6 +186,7 @@ export const subscriberCards = pgTable(
             .primaryKey()
             .default(sql`uuidv7()`)
             .$defaultFn(() => uuidv7()),
+        appId: uuid("app_id").notNull(),
         subscriberId: bigint("subscriber_id", { mode: "bigint" }).notNull(),
         tokenizedCard: text("tokenized_card").notNull(),
         isDefault: boolean("is_default").default(false),
@@ -247,10 +248,16 @@ export const subscriptions = pgTable(
     },
     (table) => [
         index("subscriptions_start_time_idx").on(table.startTime),
+        index("subscriptions_end_time_idx").on(table.endTime),
+        index("subscriptions_plan_id_idx").on(table.planId),
         foreignKey({
             columns: [table.subscriberId],
             foreignColumns: [subscribers.subscriberId],
         }).onDelete("cascade"),
+        foreignKey({
+            columns: [table.planId],
+            foreignColumns: [plans.id],
+        }).onDelete("restrict"),
         foreignKey({
             columns: [table.cardId],
             foreignColumns: [subscriberCards.id],

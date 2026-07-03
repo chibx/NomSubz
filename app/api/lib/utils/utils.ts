@@ -98,10 +98,10 @@ export function toGoErrorRet<T, A extends unknown[]>(
 
 export const safeFormdata = toGoErrorRet((request: Request) => request.formData());
 
-export function structuredResponse<T>(
+export function structuredResponse<T = null>(
     status: number,
     message: string,
-    data: T | null = {} as T,
+    data: T = null as T,
     errors?: ValidationError[],
 ) {
     const resp: StructuredResponse<T> = {

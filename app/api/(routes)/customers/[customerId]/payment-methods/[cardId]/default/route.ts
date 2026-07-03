@@ -10,7 +10,8 @@ import {
     STATUS_FORBIDDEN,
     STATUS_OK,
 } from "@/app/api/lib/utils/constants";
-import { structuredResponse, toGoErrorRet, isSubscriberForApp, logger } from "@/app/api/lib/utils/utils";
+import { isSubscriberForApp } from "@/app/api/lib/utils/db";
+import { structuredResponse, toGoErrorRet, logger } from "@/app/api/lib/utils/utils";
 import { and, eq, sql } from "drizzle-orm";
 import { NextRequest } from "next/server";
 

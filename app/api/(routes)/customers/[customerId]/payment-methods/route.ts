@@ -11,9 +11,9 @@ import {
     STATUS_OK,
     STATUS_UNAUTHORIZED,
 } from "@/app/api/lib/utils/constants";
+import { isSubscriberForApp } from "@/app/api/lib/utils/db";
 import {
     dateToString,
-    isSubscriberForApp,
     logger,
     nombaClient,
     structuredResponse,

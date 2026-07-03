@@ -11,10 +11,10 @@ import {
     STATUS_FORBIDDEN,
     DUMMY_400_MESSAGE,
 } from "@/app/api/lib/utils/constants";
-import { getSubscription, updateSubscription } from "@/app/api/lib/utils/db";
+import { getSubscription, isSubscriberForApp, updateSubscription } from "@/app/api/lib/utils/db";
 import { logger, structuredResponse, toGoErrorRet } from "@/app/api/lib/utils/utils";
 import { NextRequest } from "next/server";
-import { isSubscriberForApp, parseDrizzleError, toValidationError } from "@/app/api/lib/utils/utils";
+import { parseDrizzleError, toValidationError } from "@/app/api/lib/utils/utils";
 import { ParsedDbErrorType } from "@/app/api/lib/types/types";
 import { UpdateSubscriptionDetailSchema } from "@/app/api/lib/validation-schema/schema";
 import { parse } from "valibot";

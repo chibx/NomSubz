@@ -11,13 +11,8 @@ import {
     STATUS_FORBIDDEN,
     STATUS_OK,
 } from "@/app/api/lib/utils/constants";
-import {
-    structuredResponse,
-    toGoErrorRet,
-    isSubscriberForApp,
-    logger,
-    parseDrizzleError,
-} from "@/app/api/lib/utils/utils";
+import { isSubscriberForApp } from "@/app/api/lib/utils/db";
+import { structuredResponse, toGoErrorRet, logger, parseDrizzleError } from "@/app/api/lib/utils/utils";
 import { ERR_FIRST_UNBIND_CARD } from "@/app/shared/constants";
 import { and, eq } from "drizzle-orm";
 import { NextRequest } from "next/server";

@@ -1,7 +1,10 @@
 import { InferInput } from "valibot";
 import {
     AddCardDetailsSchema,
+    AddWebhookUrlSchema,
     CreateSubscriberSchema,
+    CreateSubscriptionPlanSchema,
+    CreateSubscriptionSchema,
     LoginSchema,
     RegisterSchema,
 } from "@/app/api/lib/validation-schema/schema";
@@ -19,3 +22,9 @@ export type CreateSubscriberRequest = InferInput<typeof CreateSubscriberSchema>;
 export type GetSubscriberRequest = null;
 
 export type AddCardDetailsRequest = InferInput<typeof AddCardDetailsSchema>;
+
+export type AddWebhookUrlRequest = InferInput<typeof AddWebhookUrlSchema>;
+
+export type CreateSubscriptionPlanRequest = InferInput<typeof CreateSubscriptionPlanSchema>;
+
+export type CreateSubscriptionRequest = InferInput<typeof CreateSubscriptionSchema>;

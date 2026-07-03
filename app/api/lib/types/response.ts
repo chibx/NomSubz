@@ -16,7 +16,7 @@ export type CreateSubscriberResponse = {
     subscriberId: string;
 };
 
-/** GET /api/customers/[id] */
+/** GET /api/customers/[customeId] */
 export type GetSubscriberResponse = {
     /** Subscriber is a bigint (int64) string */
     subscriberId: string;
@@ -36,10 +36,12 @@ export type SubscriberCard = {
     createdAt: string;
 };
 
+/** GET /api/customers/[customerId]/payment-methods */
 export type GetSubscriberCardsResponse = {
     cards: SubscriberCard[];
 };
 
+/** GET /api/customers/[customerId]/subscriptions/[subscriptionId] */
 export type GetSubscriptionResponse = {
     id: string;
     amount: string;
@@ -51,7 +53,8 @@ export type GetSubscriptionResponse = {
     planType: PlanType;
 };
 
-export type ListPlansResponse = {
+/** GET /api/plans/[planId] */
+export type GetPlanResponse = {
     id: string;
     name: string;
     amount: string;
@@ -61,4 +64,14 @@ export type ListPlansResponse = {
     details: unknown;
     createdAt: string;
     updatedAt: string;
-}
+};
+
+/** GET /api/plans */
+export type ListPlansResponse = {
+    plans: GetPlanResponse[];
+};
+
+/** POST /api/customers/[customerId]/subscriptions */
+export type CreateSubscriptionResponse = {
+    checkoutLink?: string;
+};

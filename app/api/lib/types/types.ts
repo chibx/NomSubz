@@ -83,11 +83,20 @@ export type PlanUpgradeWebHook = {
 
 export type PlanSubscriptionWebhook = {
     type: WebHookTypes.PLAN_SUBSCRIPTION;
+    // usedExistingCard: "true" | "false";
     amount: string;
     planId: string;
     subscriberId: string;
     appId: string;
     currentDate: string;
-};
+} & (
+    | {
+          usedExistingCard: "true";
+          cardId: string;
+      }
+    | {
+          usedExistingCard: "false";
+      }
+);
 
 export type WebHookVariants = PlanUpgradeWebHook | PlanSubscriptionWebhook;

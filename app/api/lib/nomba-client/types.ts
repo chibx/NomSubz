@@ -41,16 +41,15 @@ export type RefreshTokenResponse = NombaBaseResponse<AuthData>;
 export interface CreateOrderRequest {
     order: {
         orderReference: string;
-        customerId: string;
+        customerId?: string;
         callbackUrl: string;
-        customerEmail?: string;
+        customerEmail: string;
         /** Amount in base currency units (e.g. "10000.00" for ₦10,000.00) */
         amount: string;
         currency: string;
         allowedPaymentMethods?: AllowedPaymentMethods[];
         orderMetaData?: Record<string, string>;
     };
-    meta?: Record<string, string>;
     /** Set to true to tokenize the card for future recurring charges */
     tokenizeCard?: boolean;
 }
@@ -135,7 +134,7 @@ export type SubmitSaveCardOTPResponse = NombaBaseResponse<unknown>;
 export interface ChargeTokenizedCardRequest {
     order: {
         orderReference: string;
-        customerId: string;
+        customerId?: string;
         callbackUrl: string;
         customerEmail: string;
         amount: string;

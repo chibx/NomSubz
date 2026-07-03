@@ -11,7 +11,7 @@ import {
 } from "../db/schema";
 import { addWithSubscriptionDuration, FriendlyError, nombaClient, toGoErrorRet } from "./utils";
 import { STATUS_BAD_REQUEST, STATUS_INTERNAL_SERVER_ERROR, STATUS_NOT_FOUND, subscriptionDurations } from "./constants";
-import { ApplicationLogEvents, ApplicationLogMeta, PlanType, WebHookTypes, WebHookVariants } from "../types/types";
+import { ApplicationLogEvents, ApplicationLogMeta, PlanType, PlanUpgradeWebHook, WebHookTypes } from "../types/types";
 import { Decimal } from "decimal.js";
 import { CALLBACK_URL } from "@/app/shared/constants";
 
@@ -156,7 +156,7 @@ async function handleExtraAmountToPay(arg: extraAmountToPayArg) {
                 oldPlanId: arg.oldPlanId,
                 amountToPay: arg.amountToPay!,
                 userRemaining: arg.userRemaining!,
-            } satisfies WebHookVariants,
+            } satisfies PlanUpgradeWebHook,
         },
         tokenKey: arg.cardToken,
     });

@@ -2,4 +2,6 @@
 - Add strong auth layer 
 - Add personalized Nomba Client SDK (as there was no Node.js one online)
 - Add the feature to save subscribers card for future subscriptions
+- Add support for applications to add their own webhook endpoint
 - Add support for receiving webhooks
+- Add support for creating subscriptions

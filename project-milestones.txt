@@ -5,3 +5,10 @@
 - Add support for applications to add their own webhook endpoint
 - Add support for receiving webhooks
 - Add support for creating subscriptions
+
+
+-------------------------------------------------------
+
+_ Remaining OTP Implementation
+_ Remaining MFA Implementation
+_ List subscriptions [/api/customers/[customerId]/subscriptions]

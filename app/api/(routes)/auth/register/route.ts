@@ -1,4 +1,4 @@
-import { logger, structuredResponse, toGoErrorRet, toValidationError } from "@/app/api/lib/utils/utils";
+import { logger, safeFormdata, structuredResponse, toGoErrorRet, toValidationError } from "@/app/api/lib/utils/utils";
 import { NextRequest } from "next/server";
 import { decode } from "decode-formdata";
 import { REGISTER_FORM_INFO } from "@/app/shared/constants";
@@ -15,7 +15,7 @@ import {
 } from "@/app/api/lib/utils/constants";
 
 export async function POST(req: NextRequest) {
-    const [formData, error$1] = await toGoErrorRet(() => req.formData())();
+    const [formData, error$1] = await safeFormdata(req);
     if (error$1 != null) {
         logger.withTag(req.url).debug("Failed to parse formdata", error$1);
         return structuredResponse(STATUS_INTERNAL_SERVER_ERROR, DUMMY_500_MESSAGE);

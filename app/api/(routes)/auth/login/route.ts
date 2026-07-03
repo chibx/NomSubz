@@ -1,4 +1,11 @@
-import { addToDate, logger, structuredResponse, toGoErrorRet, toValidationError } from "@/app/api/lib/utils/utils";
+import {
+    addToDate,
+    logger,
+    safeFormdata,
+    structuredResponse,
+    toGoErrorRet,
+    toValidationError,
+} from "@/app/api/lib/utils/utils";
 import { NextRequest } from "next/server";
 import { decode } from "decode-formdata";
 import * as v from "valibot";
@@ -26,7 +33,7 @@ export async function POST(req: NextRequest) {
     if (ipAddr == null || !v.IP_REGEX.test(ipAddr)) {
         return structuredResponse(STATUS_BAD_REQUEST, "Invalid request");
     }
-    const [formData, error$1] = await toGoErrorRet(() => req.formData())();
+    const [formData, error$1] = await safeFormdata(req);
     if (error$1 != null) {
         logger.withTag(req.url).debug("Failed to parse formdata", error$1);
         return structuredResponse(STATUS_INTERNAL_SERVER_ERROR, DUMMY_500_MESSAGE);

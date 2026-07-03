@@ -71,9 +71,15 @@ export const AddWebhookUrlSchema = v.object({
 
 export const CreateSubscriptionPlanSchema = v.object({
     name: v.string(),
-    amount: v.number(),
+    amount: v.pipe(v.string(), v.decimal("Amount must be a valid decimal number")),
     currency: v.string(),
     status: v.optional(v.pipe(v.string(), v.picklist(["enabled", "disabled"]))),
     type: v.pipe(v.string(), v.picklist(["weekly", "monthly", "annually"])),
     details: v.optional(v.unknown()),
-})
+});
+
+export const CreateSubscriptionSchema = v.object({
+    planId: v.pipe(v.string(), v.toBigint("Invalid plan id")),
+    cardId: v.optional(v.string()),
+    callbackUrl: v.pipe(v.string(), v.regex(httpRegex, "Invalid callback url")),
+});

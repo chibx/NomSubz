@@ -53,7 +53,13 @@ export async function DELETE(
     const [, error$3] = await toGoErrorRet(() => {
         return appDB
             .delete(subscriberCards)
-            .where(and(eq(subscriberCards.id, cardId), eq(subscriberCards.subscriberId, subscriberId)));
+            .where(
+                and(
+                    eq(subscriberCards.appId, appId),
+                    eq(subscriberCards.id, cardId),
+                    eq(subscriberCards.subscriberId, subscriberId),
+                ),
+            );
     })();
 
     if (error$3 !== null) {

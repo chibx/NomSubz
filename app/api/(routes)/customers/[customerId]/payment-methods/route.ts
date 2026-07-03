@@ -130,7 +130,7 @@ export async function GET(req: NextRequest, ctx: RouteContext<"/api/customers/[c
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { tokenizedCard: _, ...rest } = getTableColumns(subscriberCards);
+    const { tokenizedCard: _, appId: __, ...rest } = getTableColumns(subscriberCards);
     const [result$2, error$3] = await toGoErrorRet(() => {
         return appDB.select(rest).from(subscriberCards).where(eq(subscriberCards.subscriberId, subscriberId));
     })();

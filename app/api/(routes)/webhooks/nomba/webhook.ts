@@ -39,27 +39,35 @@ export async function doPlanSubscriptionWebHook(
     order: WebhookOrder,
     extraData: PlanSubscriptionWebhook,
 ) {
-    if (!data.tokenizedCardData) {
-        logger.error("Plan subscription does not include tokenized card data");
-        return structuredResponse(STATUS_BAD_REQUEST, "Plan subscription does not include tokenized card data", null);
-    }
+    let cardId = "";
+    if (data.tokenizedCardData) {
+        const [row, err$3] = await toGoErrorRet(() =>
+            appDB
+                .insert(subscriberCards)
+                .values({
+                    expiryMonth: parseInt(data.tokenizedCardData!.tokenExpiryMonth),
+                    expiryYear: parseInt(data.tokenizedCardData!.tokenExpiryYear),
+                    last4Digits: data.tokenizedCardData!.cardPan.slice(-4),
+                    brand: data.tokenizedCardData!.cardType,
+                    tokenizedCard: data.tokenizedCardData!.tokenKey,
+                    appId: extraData.appId,
+                    subscriberId: BigInt(extraData.subscriberId),
+                })
+                .returning({ id: subscriberCards.id }),
+        )();
+        if (err$3 !== null) {
+            logger.withTag(`subscriber:${extraData.subscriberId}`).error("Failed to save tokenized card", err$3);
+            return structuredResponse(STATUS_INTERNAL_SERVER_ERROR, "Failed to save tokenized card", null);
+        }
 
-    const [row, err$3] = await toGoErrorRet(() =>
-        appDB
-            .insert(subscriberCards)
-            .values({
-                expiryMonth: parseInt(data.tokenizedCardData!.tokenExpiryMonth),
-                expiryYear: parseInt(data.tokenizedCardData!.tokenExpiryYear),
-                last4Digits: data.tokenizedCardData!.cardPan.slice(-4),
-                brand: data.tokenizedCardData!.cardType,
-                tokenizedCard: data.tokenizedCardData!.tokenKey,
-                subscriberId: BigInt(extraData.subscriberId),
-            })
-            .returning({ id: subscriberCards.id }),
-    )();
-    if (err$3 !== null) {
-        logger.withTag(`subscriber:${extraData.subscriberId}`).error("Failed to save tokenized card", err$3);
-        return structuredResponse(STATUS_INTERNAL_SERVER_ERROR, "Failed to save tokenized card", null);
+        cardId = row[0].id;
+    } else {
+        if (extraData.usedExistingCard === "true") {
+            cardId = extraData.cardId;
+        } else {
+            logger.warn("Webhook receives metadata without card data where needed");
+            return structuredResponse(STATUS_BAD_REQUEST, "Invalid payload format");
+        }
     }
 
     const [, err$4] = await toGoErrorRet(() =>
@@ -69,7 +77,7 @@ export async function doPlanSubscriptionWebHook(
             subscriberId: BigInt(extraData.subscriberId),
             appId: extraData.appId,
             currentDate: new Date(extraData.currentDate),
-            cardId: row[0].id,
+            cardId: cardId,
             reference: order.orderReference,
             cardToken: data.tokenizedCardData!.tokenKey,
         }),

@@ -38,7 +38,6 @@ export const applications = pgTable(
     {
         id: uuid("id")
             .primaryKey()
-            .default(sql`uuidv7()`)
             .$defaultFn(() => uuidv7()),
         name: text("name").notNull(),
         createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
@@ -195,7 +194,6 @@ export const subscriberCards = pgTable(
     {
         id: uuid("id")
             .primaryKey()
-            .default(sql`uuidv7()`)
             .$defaultFn(() => uuidv7()),
         appId: uuid("app_id").notNull(),
         subscriberId: bigint("subscriber_id", { mode: "bigint" }).notNull(),
@@ -241,7 +239,6 @@ export const subscriptions = pgTable(
     {
         id: uuid("id")
             .primaryKey()
-            .default(sql`uuidv7()`)
             .$defaultFn(() => uuidv7()),
         subscriberId: bigint("subscriber_id", { mode: "bigint" }).notNull(),
         planId: bigint("plan_id", { mode: "bigint" }).notNull(),
@@ -281,7 +278,6 @@ export const payments = pgTable(
     {
         id: uuid("id")
             .primaryKey()
-            .default(sql`uuidv7()`)
             .$defaultFn(() => uuidv7()),
         appId: uuid("app_id").notNull(),
         subscriberId: bigint("subscriber_id", { mode: "bigint" }).notNull(),

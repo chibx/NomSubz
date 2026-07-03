@@ -1,4 +1,4 @@
-import { eq, and, exists, getTableColumns, SQL } from "drizzle-orm";
+import { eq, and, exists, getTableColumns, SQL, sql } from "drizzle-orm";
 import { appDB } from "../db/db";
 import {
     applicationLogs,
@@ -14,6 +14,21 @@ import { STATUS_BAD_REQUEST, STATUS_INTERNAL_SERVER_ERROR, STATUS_NOT_FOUND, sub
 import { ApplicationLogEvents, ApplicationLogMeta, PlanType, PlanUpgradeWebHook, WebHookTypes } from "../types/types";
 import { Decimal } from "decimal.js";
 import { CALLBACK_URL } from "@/app/shared/constants";
+
+export const isSubscriberForApp = toGoErrorRet(async (appId: string, subscriberId: bigint) => {
+    let result = false;
+    const b = await appDB
+        .select({
+            a: sql<number>`1`,
+        })
+        .from(subscribers)
+        .where(and(eq(subscribers.appId, appId), eq(subscribers.subscriberId, subscriberId)));
+
+    if (b.length > 0) {
+        result = true;
+    }
+    return result;
+});
 
 export const getSubscription = toGoErrorRet((appId: string, subscriberId: bigint, subscriptionId: string) => {
     return appDB

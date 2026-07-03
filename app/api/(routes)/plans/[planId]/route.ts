@@ -9,7 +9,7 @@ import {
 } from "@/app/api/lib/utils/constants";
 import { dateToString, structuredResponse } from "@/app/api/lib/utils/utils";
 import { toGoErrorRet } from "@/app/api/lib/utils/utils";
-import { plans } from "@/app/api/lib/db/tables";
+import { plans } from "@/app/api/lib/db/schema";
 import { appDB } from "@/app/api/lib/db/db";
 import { and, eq } from "drizzle-orm";
 import { GetPlanResponse } from "@/app/api/lib/types/response";

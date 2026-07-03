@@ -1,6 +1,6 @@
 import { getAppId } from "@/app/api/lib/auth";
 import { appDB } from "@/app/api/lib/db/db";
-import { plans, subscriberCards, subscribers } from "@/app/api/lib/db/tables";
+import { plans, subscriberCards, subscribers } from "@/app/api/lib/db/schema";
 import { CreateSubscriptionResponse } from "@/app/api/lib/types/response";
 import { PlanSubscriptionWebhook, WebHookTypes } from "@/app/api/lib/types/types";
 import {

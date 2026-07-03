@@ -1,5 +1,5 @@
 import { FormDataInfo } from "decode-formdata";
-import { AnalyticsPeriodType } from "@/app/api/lib/types/types";
+import { AnalyticsPeriodType } from "@/app/api/lib/db/schema";
 
 export const APP_NAME = "NomSubz";
 export const CALLBACK_URL = "https://numsubz.vercel.app/";

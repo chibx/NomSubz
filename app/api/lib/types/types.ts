@@ -1,5 +1,5 @@
 import { InferEnum } from "drizzle-orm";
-import { planTypeEnum } from "../db/enums";
+import { planTypeEnum } from "../db/schema";
 
 export type NullT<T> = T | null;
 
@@ -26,13 +26,6 @@ export type ApplicationLogMeta = {
         currentDate: string;
     };
 };
-
-export enum CardConfirmationStatus {
-    PENDING = 0,
-    CONFIRMED = 1,
-}
-
-export type AnalyticsPeriodType = number & {};
 
 export type Analytics = {
     TotalRevenue: number;

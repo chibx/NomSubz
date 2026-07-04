@@ -101,7 +101,7 @@ When a subscription charge fails, the system must trigger the dunning process:
 - `GET /api/customers/[customerId]/subscriptions/[subscriptionId]` - Get details of a specific subscription
 - `PUT /api/customers/[customerId]/subscriptions/[subscriptionId]` - Upgrade/downgrade a plan (triggers proration math)
 - `POST /api/customers/[customerId]/subscriptions/[subscriptionId]/cancel` - Schedule cancellation (`cancel_at_period_end = true`)
-- `POST /api/customers/[customerId]/subscriptions/[subscriptionId]/pause` - Schedule pause (`pause_at_period_end = true`)
+- `POST /api/customers/[customerId]/subscriptions/[subscriptionId]/pause` - Schedule pause 
 - `POST /api/customers/[customerId]/subscriptions/[subscriptionId]/resume` - Reactivate paused subscription immediately
 
 #### Invoices & Receipts

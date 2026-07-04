@@ -40,3 +40,13 @@ export type TwoFAVerifyRequest = InferInput<typeof TwoFAVerifySchema>;
 
 /** POST /api/auth/login/2fa */
 export type LoginWith2FARequest = InferInput<typeof LoginWith2FASchema>;
+
+/** GET /api/customers/[customerId]/subscriptions
+ * Query Params are:
+ * - page?: number;
+ * - order?: "asc" | "desc";
+ * - count?: number;
+ * - cursor?: string;
+ * - status?: "pending" | "active" | "cancelled" | "paused";
+ */
+export type ListSubscriptionsRequest = object; // Leaving this here for indication

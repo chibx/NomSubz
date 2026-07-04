@@ -1,7 +1,7 @@
 import { InferEnum } from "drizzle-orm";
 import { ValidationError } from "../utils/utils";
 import { NullT, PlanType } from "./types";
-import { subscriptionsStatusEnum } from "../db/schema";
+import { planStatusEnum, planTypeEnum, subscriptionsStatusEnum } from "../db/schema";
 
 export type StructuredResponse<T = unknown> = {
     status: number;
@@ -59,8 +59,8 @@ export type GetPlanResponse = {
     name: string;
     amount: string;
     currency: string;
-    status: "enabled" | "disabled";
-    type: "weekly" | "monthly" | "annually";
+    status: InferEnum<typeof planStatusEnum>;
+    type: PlanType;
     details: unknown;
     createdAt: string;
     updatedAt: string;
@@ -86,3 +86,20 @@ export type LoginResponse = {
     requires2FA?: boolean;
     pendingToken?: string;
 };
+
+export interface ListSubscriptionsResponse {
+    subscriptions: Array<{
+        id: string;
+        amount: string;
+        status: InferEnum<typeof subscriptionsStatusEnum>;
+        startTime: string;
+        endTime: string;
+        createdAt: string;
+        cancelAtEnd: boolean;
+        planId: string;
+        planName: string;
+        planType: PlanType;
+    }>;
+    nextPage: number | null;
+    cursor: string | null;
+}

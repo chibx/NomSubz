@@ -6,6 +6,7 @@
 - Add support for receiving webhooks
 - Add support for creating subscriptions
 - Add Remaining MFA Implementation
+- Add feature to manage subscriptions status (pause, resume, cancel)
 
 
 -------------------------------------------------------

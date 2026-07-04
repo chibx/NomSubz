@@ -82,38 +82,33 @@ When a subscription charge fails, the system must trigger the dunning process:
 
 #### Plans & Catalog
 - `GET /api/plans` - List all active plans
-- `GET /api/plans/:id` - Get details of a specific plan
+- `GET /api/plans/[planId]` - Get details of a specific plan
 - `POST /api/plans` - Create a new plan (Admin only)
-- `PUT /api/plans/:id` - Update plan details (names/descriptions only; pricing is immutable)
 
 #### Customers
 - `POST /api/customers` - Create a billing profile for an authenticated user
-- `GET /api/customers/me` - Get current customer's profile
-- `GET /api/customers/:id` - Get specific customer profile (Admin only)
-- `PUT /api/customers/me` - Update billing/contact details
+- `GET /api/customers/[customerId]` - Get specific customer profile (Admin only)
 
 #### Payment Methods (Tokenized Cards)
-- `POST /api/customers/me/payment-methods` - Attach a tokenized card from Nomba
-- `GET /api/customers/me/payment-methods` - List saved cards
-- `PUT /api/customers/me/payment-methods/:cardId/default` - Set default payment card
-- `DELETE /api/customers/me/payment-methods/:cardId` - Remove card
+- `POST /api/customers/[customerId]/payment-methods` - Attach a tokenized card from Nomba
+- `GET /api/customers/[customerId]/payment-methods` - List saved cards
+- `PUT /api/customers/[customerId]/payment-methods/[cardId]/default` - Set default payment card
+- `DELETE /api/customers/[customerId]/payment-methods/[cardId]` - Remove card
 
 #### Subscriptions (State Machine)
-- `POST /api/subscriptions` - Create new subscription (requires plan ID, payment method)
-- `GET /api/subscriptions` - List subscriptions (Admin only, supports filter by status)
-- `GET /api/subscriptions/me` - List current user's subscriptions
-- `GET /api/subscriptions/:id` - Get details of a specific subscription
-- `PUT /api/subscriptions/:id` - Upgrade/downgrade a plan (triggers proration math)
-- `POST /api/subscriptions/:id/cancel` - Schedule cancellation (`cancel_at_period_end = true`)
-- `POST /api/subscriptions/:id/pause` - Schedule pause (`pause_at_period_end = true`)
-- `POST /api/subscriptions/:id/resume` - Reactivate paused subscription immediately
+- `POST /api/customers/[customerId]/subscriptions` - Create new subscription (requires plan ID, payment method)
+- `GET /api/customers/[customerId]/subscriptions` - List subscriptions for a customer (supports filter by status)
+- `GET /api/customers/[customerId]/subscriptions/[subscriptionId]` - Get details of a specific subscription
+- `PUT /api/customers/[customerId]/subscriptions/[subscriptionId]` - Upgrade/downgrade a plan (triggers proration math)
+- `POST /api/customers/[customerId]/subscriptions/[subscriptionId]/cancel` - Schedule cancellation (`cancel_at_period_end = true`)
+- `POST /api/customers/[customerId]/subscriptions/[subscriptionId]/pause` - Schedule pause (`pause_at_period_end = true`)
+- `POST /api/customers/[customerId]/subscriptions/[subscriptionId]/resume` - Reactivate paused subscription immediately
 
 #### Invoices & Receipts
 - `GET /api/invoices` - List all invoices (Admin only)
-- `GET /api/customers/me/invoices` - List invoices for current user
-- `GET /api/invoices/:id` - Get details of specific invoice
-- `GET /api/invoices/:id/pdf` - Generate and return PDF invoice on the fly (e.g. using `pdfkit` or templates)
-- `POST /api/invoices/:id/refund` - Process a refund via Nomba's Refund API (transitions to `refunded` or `partially_refunded`)
+- `GET /api/customers/[customerId]/invoices` - List invoices for a specific customer
+- `GET /api/customers/[customerId]/invoices/[invoiceId]` - Get details of specific invoice
+- `GET /api/customers/[customerId]/invoices/[invoiceId]/pdf` - Generate and return PDF invoice on the fly (e.g. using `pdfkit` or templates)
 
 #### Webhooks
 - `POST /api/webhooks/nomba` - Secure endpoint for Nomba asynchronous event notifications

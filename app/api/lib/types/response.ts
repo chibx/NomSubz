@@ -75,3 +75,14 @@ export type ListPlansResponse = {
 export type CreateSubscriptionResponse = {
     checkoutLink?: string;
 };
+
+export type Agree2FAResponse = {
+    secret: string;
+    totpURI: string;
+    backupCodes: string[];
+};
+
+export type LoginResponse = {
+    requires2FA?: boolean;
+    pendingToken?: string;
+};

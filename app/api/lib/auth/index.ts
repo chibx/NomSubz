@@ -2,12 +2,20 @@ import { randomBytes, createCipheriv, createDecipheriv } from "crypto";
 import { hash, verify } from "argon2";
 import { SignJWT, jwtVerify } from "jose";
 import { APP_NAME } from "@/app/shared/constants";
-import { addToDate, toGoErrorRet, getEnv } from "../utils/utils";
-import { APIKEY_LENGTH, APPID_KEY, ERR_INVALID_APIKEY, MINUTES_30 } from "../utils/constants";
+import { addToDate, toGoErrorRet, getEnv, FriendlyError } from "../utils/utils";
+import {
+    APIKEY_LENGTH,
+    APPID_KEY,
+    ERR_INVALID_APIKEY,
+    MINUTES_30,
+    OTP_BACKUP_CODES_COUNT,
+    STATUS_BAD_REQUEST,
+} from "../utils/constants";
 import { NextRequest } from "next/server";
 import { appDB } from "../db/db";
 import { appApiKeys } from "../db/schema";
 import { and, eq } from "drizzle-orm";
+import { TOTP } from "otpauth";
 
 const ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 12; // 12 bytes is the standard and most efficient size for GCM
@@ -76,16 +84,18 @@ export const verifyHash = toGoErrorRet(async (hashedText: string, password: stri
     return isValid;
 });
 
-export const signJWT = toGoErrorRet(async (payload: { [index: string]: unknown }, secretKey: Buffer) => {
-    const signer = new SignJWT(payload)
-        .setIssuer(APP_NAME)
-        .setIssuedAt(new Date())
-        .setExpirationTime(addToDate(MINUTES_30))
-        .setProtectedHeader({ alg: "HS256" });
+export const signJWT = toGoErrorRet(
+    async (payload: { [index: string]: unknown }, secretKey: Buffer, expiresIn?: number) => {
+        const signer = new SignJWT(payload)
+            .setIssuer(APP_NAME)
+            .setIssuedAt(new Date())
+            .setExpirationTime(addToDate(expiresIn || MINUTES_30))
+            .setProtectedHeader({ alg: "HS256" });
 
-    const jwtToken = await signer.sign(secretKey);
-    return jwtToken;
-});
+        const jwtToken = await signer.sign(secretKey);
+        return jwtToken;
+    },
+);
 
 export const verifyJWT = toGoErrorRet(async <T>(token: string, secretKey: Buffer) => {
     const result = await jwtVerify<T>(token, secretKey, {
@@ -120,4 +130,58 @@ export const validateApiKey = toGoErrorRet(async (apiKey: string) => {
     }
 
     return result[0].appId;
+});
+
+export const generateTOTPSecret = toGoErrorRet((appName: string, email: string) => {
+    const totp = new TOTP({
+        issuer: appName,
+        label: email,
+        algorithm: "SHA1",
+        digits: 6,
+        period: 30,
+    });
+
+    return totp.secret;
+});
+
+export const generateTOTPURI = toGoErrorRet((secret: string, appName: string, email: string) => {
+    const totp = new TOTP({
+        issuer: appName,
+        label: email,
+        secret: secret,
+        algorithm: "SHA1",
+        digits: 6,
+        period: 30,
+    });
+
+    return totp.toString();
+});
+
+export const verifyTOTP = toGoErrorRet((secret: string, token: string) => {
+    const totp = new TOTP({
+        secret: secret,
+        algorithm: "SHA1",
+        digits: 6,
+        period: 30,
+    });
+
+    const delta = totp.validate({ token: token, window: 1 });
+
+    if (delta === null) {
+        throw new FriendlyError(STATUS_BAD_REQUEST, "Invalid TOTP token");
+    }
+
+    return true;
+});
+
+export const generateBackupCodes = toGoErrorRet(async (count: number) => {
+    const codes: string[] = [];
+    for (let i = 0; i < count; i++) {
+        const [code, error] = await generateOTPBackupCode();
+        if (error !== null) {
+            throw error;
+        }
+        codes.push(code);
+    }
+    return codes;
 });

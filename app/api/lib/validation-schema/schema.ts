@@ -83,3 +83,18 @@ export const CreateSubscriptionSchema = v.object({
     cardId: v.optional(v.string()),
     callbackUrl: v.pipe(v.string(), v.regex(httpRegex, "Invalid callback url")),
 });
+
+export const TwoFAVerifySchema = v.object({
+    token: v.pipe(
+        v.string(),
+        v.digits("Token must be a 6-digit number"),
+        // v.length(6, "Token must be exactly 6 digits"),
+    ),
+});
+
+export const LoginWith2FASchema = v.pipe(
+    v.object({
+        pendingToken: v.pipe(v.string("Pending token must be a string"), v.minLength(1, "Pending token is required")),
+        token: v.pipe(v.string(), v.digits("Token must be a 6-digit number")),
+    }),
+);

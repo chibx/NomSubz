@@ -75,13 +75,13 @@ export const appApiKeys = pgTable(
     ],
 );
 
+/** This is for the 2FA Secrets */
 export const apps2FASecrets = pgTable(
     "app_2fa_secrets",
     {
         appId: uuid("app_id").notNull(),
         encryptedSecret: text("secret").notNull(),
         createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
-        updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow(),
     },
     (table) => [
         index("secrets_2fa_appId_idx").on(table.appId),
@@ -92,13 +92,13 @@ export const apps2FASecrets = pgTable(
     ],
 );
 
+/** This is for the 2FA backup codes (codes are hashed instead of encrypted) */
 export const apps2FACodes = pgTable(
     "app_2fa_codes",
     {
         appId: uuid("app_id").notNull(),
         hashedCode: text("code").notNull(),
         createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
-        updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow(),
     },
     (table) => [
         index("codes_2fa_appId_idx").on(table.appId),

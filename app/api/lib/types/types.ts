@@ -36,6 +36,7 @@ export type Analytics = {
 
 export type JWTField = {
     appId: string;
+    purpose?: "access" | "mfa_pending";
 };
 
 export type PlanType = InferEnum<typeof planTypeEnum>;

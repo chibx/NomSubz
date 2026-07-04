@@ -18,6 +18,7 @@ import {
     DAYS_7,
     DUMMY_500_MESSAGE,
     MINUTES_30,
+    MINUTES_5,
     REFRESHTOKEN_COOKIE,
     STATUS_BAD_REQUEST,
     STATUS_INTERNAL_SERVER_ERROR,
@@ -26,6 +27,7 @@ import {
 import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { JWTField } from "@/app/api/lib/types/types";
+import { LoginResponse } from "@/app/api/lib/types/response";
 
 export async function POST(req: NextRequest) {
     const headers = new Headers(req.headers);
@@ -53,6 +55,7 @@ export async function POST(req: NextRequest) {
                 appId: applications.id,
                 email: applications.email,
                 password: applications.password,
+                is2FAEnabled: applications.is2FAEnabled,
             })
             .from(applications)
             .where(eq(applications.email, validBody.email)),
@@ -78,20 +81,42 @@ export async function POST(req: NextRequest) {
         return structuredResponse(STATUS_BAD_REQUEST, "Invalid email or password");
     }
 
-    const [accessToken, error$5] = await signJWT(
+    // If 2FA is enabled, issue a short-lived pending MFA token
+    if (appData.is2FAEnabled) {
+        const [pendingToken, error$5] = await signJWT(
+            {
+                appId: appData.appId,
+                purpose: "mfa_pending",
+            } satisfies JWTField,
+            SECRET_KEY,
+            MINUTES_5,
+        );
+
+        if (error$5 !== null) {
+            logger.withTag(req.url).error("Failed to generate pending MFA token:", error$5);
+            return structuredResponse(STATUS_INTERNAL_SERVER_ERROR, DUMMY_500_MESSAGE);
+        }
+
+        return structuredResponse<LoginResponse>(STATUS_OK, "2FA required", {
+            requires2FA: true,
+            pendingToken: pendingToken,
+        });
+    }
+
+    const [accessToken, error$6] = await signJWT(
         {
             appId: appData.appId,
         } satisfies JWTField,
         SECRET_KEY,
     );
 
-    if (error$5 !== null) {
+    if (error$6 !== null) {
         logger.withTag(req.url).error(error$3);
         return structuredResponse(STATUS_INTERNAL_SERVER_ERROR, DUMMY_500_MESSAGE);
     }
 
-    const [result$3, error$6] = await safeRandomBytes(32);
-    if (error$6 !== null) {
+    const [result$3, error$7] = await safeRandomBytes(32);
+    if (error$7 !== null) {
         logger.withTag(req.url).error("Could not generate refresh token");
         return structuredResponse(STATUS_INTERNAL_SERVER_ERROR, DUMMY_500_MESSAGE);
     }
@@ -102,7 +127,7 @@ export async function POST(req: NextRequest) {
     const refreshTokenExp = addToDate(DAYS_7);
     const refreshToken = result$3.toString("base64");
 
-    const [, error$7] = await toGoErrorRet(() =>
+    const [, error$8] = await toGoErrorRet(() =>
         appDB.insert(applicationSessions).values({
             appId: appData.appId,
             expiresAt: refreshTokenExp,
@@ -111,8 +136,8 @@ export async function POST(req: NextRequest) {
         }),
     )();
 
-    if (error$7 !== null) {
-        logger.withTag(req.url).error("Could not save login refresh token: ", error$7);
+    if (error$8 !== null) {
+        logger.withTag(req.url).error("Could not save login refresh token: ", error$8);
         return structuredResponse(STATUS_INTERNAL_SERVER_ERROR, DUMMY_500_MESSAGE);
     }
 

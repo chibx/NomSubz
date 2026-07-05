@@ -35,6 +35,7 @@ export const nombaClient = new NombaClient({
 
 export const pgBoss = new PgBoss({
     connectionString: databaseUrl,
+    createSchema: true,
 });
 
 export const snowflake = new Snowyflake({

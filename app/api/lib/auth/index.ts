@@ -5,10 +5,11 @@ import { APP_NAME } from "@/app/shared/constants";
 import { addToDate, toGoErrorRet, getEnv, FriendlyError } from "../utils/utils";
 import {
     APIKEY_LENGTH,
+    APIKEY_PREFIX_LENGTH,
+    APIKEY_SECRET_LENGTH,
     APPID_KEY,
     ERR_INVALID_APIKEY,
     MINUTES_30,
-    OTP_BACKUP_CODES_COUNT,
     STATUS_BAD_REQUEST,
 } from "../utils/constants";
 import { NextRequest } from "next/server";
@@ -73,6 +74,34 @@ export const generateOTPBackupCode = toGoErrorRet(() => {
     return `${code.slice(0, 5)}-${code.slice(5)}`;
 });
 
+export const generateRandomSafeString = toGoErrorRet((length: number) => {
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    const alphabetLength = alphabet.length; // 62
+
+    // Calculate the highest perfectly divisible limit: 248
+    // 256 - (256 % 62) = 248
+    const maxValidByte = 256 - (256 % alphabetLength);
+
+    let string = "";
+
+    while (string.length < length) {
+        const bytes = randomBytes(length);
+
+        for (let i = 0; i < bytes.length; i++) {
+            // Only use the byte if it falls within our perfectly divisible range
+            if (bytes[i] < maxValidByte) {
+                string += alphabet[bytes[i] % alphabetLength];
+
+                if (string.length === length) {
+                    return string;
+                }
+            }
+        }
+    }
+
+    return string;
+});
+
 export const hashText = toGoErrorRet((text: string) => {
     return hash(text, { secret: SECRET_KEY });
 });
@@ -106,14 +135,31 @@ export const verifyJWT = toGoErrorRet(async <T>(token: string, secretKey: Buffer
 
 export const safeRandomBytes = toGoErrorRet((size: number) => randomBytes(size));
 
+export const generateApiKey = toGoErrorRet(async () => {
+    const [prefix, error$1] = await generateRandomSafeString(APIKEY_PREFIX_LENGTH);
+    const [secret, error$2] = await generateRandomSafeString(APIKEY_SECRET_LENGTH);
+    if (error$1 !== null) {
+        throw error$1;
+    }
+    if (error$2 !== null) {
+        throw error$2;
+    }
+    const [hashedSecret, error$3] = await hashText(secret);
+    if (error$3 !== null) {
+        throw error$3;
+    }
+
+    return { prefix, secret, hashedSecret };
+});
+
 export const validateApiKey = toGoErrorRet(async (apiKey: string) => {
     apiKey = apiKey.trim();
     if (apiKey.length !== APIKEY_LENGTH) {
-        throw new Error(ERR_INVALID_APIKEY);
+        throw new FriendlyError(STATUS_BAD_REQUEST, ERR_INVALID_APIKEY);
     }
-    const [prefix, secret = ""] = apiKey.split("-");
+    const [prefix, secret = ""] = apiKey.split("_");
     if (secret === "") {
-        throw new Error(ERR_INVALID_APIKEY);
+        throw new FriendlyError(STATUS_BAD_REQUEST, ERR_INVALID_APIKEY);
     }
     const [hashedSecret, error$1] = await hashText(secret);
     if (error$1 !== null) {
@@ -126,7 +172,7 @@ export const validateApiKey = toGoErrorRet(async (apiKey: string) => {
         .where(and(eq(appApiKeys.prefix, prefix), eq(appApiKeys.secret, hashedSecret)));
 
     if (result.length === 0) {
-        throw new Error(ERR_INVALID_APIKEY);
+        throw new FriendlyError(STATUS_BAD_REQUEST, ERR_INVALID_APIKEY);
     }
 
     return result[0].appId;

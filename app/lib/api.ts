@@ -152,7 +152,7 @@ export function logout() {
 }
 
 export function whoami() {
-  return jsonRequest<{ appId: string }>("/auth/whoami");
+  return jsonRequest<{ app_id: string }>("/auth/whoami");
 }
 
 // ---- 2FA ----

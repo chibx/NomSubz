@@ -49,7 +49,7 @@ export default function WebhooksPage() {
     setSubmitting(true);
     setError(null);
 
-    const res = await createWebhookEndpoint(url, events);
+    const res = await createWebhookEndpoint(url);
 
     setSubmitting(false);
 
@@ -121,7 +121,7 @@ export default function WebhooksPage() {
               {endpoints.map((ep) => (
                 <li key={ep.id} className="rounded-xl border border-border bg-surface p-4">
                   <p className="font-medium text-foreground">{ep.url}</p>
-                  <p className="mt-1 text-xs text-muted">{ep.events.join(", ")}</p>
+                  <p className="mt-1 text-xs text-muted">Events not configurable yet.</p>
                 </li>
               ))}
             </ul>

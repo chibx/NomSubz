@@ -13,6 +13,8 @@ export function toneFor(status: string): BadgeTone {
   switch (status) {
     case "active":
     case "enabled":
+    case "success":
+    case "SUCCESS":
     case "successful":
     case "SUCCESSFUL":
       return "success";

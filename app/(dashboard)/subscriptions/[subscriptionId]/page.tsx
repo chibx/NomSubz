@@ -32,7 +32,7 @@ export default function SubscriptionDetailPage() {
       setLoading(false);
       return;
     }
-    Promise.all([getSubscription(customerId, params.subscriptionId), listPlans(customerId)]).then(
+    Promise.all([getSubscription(customerId, params.subscriptionId), listPlans()]).then(
       ([subRes, plansRes]) => {
         setSubscription(subRes.data);
         setPlans(plansRes.data ?? []);
@@ -44,7 +44,7 @@ export default function SubscriptionDetailPage() {
   useEffect(() => {
     if (!customerId) return;
     let mounted = true;
-    Promise.all([getSubscription(customerId, params.subscriptionId), listPlans(customerId)]).then(
+    Promise.all([getSubscription(customerId, params.subscriptionId), listPlans()]).then(
       ([subRes, plansRes]) => {
         if (!mounted) return;
         setSubscription(subRes.data);

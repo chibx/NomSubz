@@ -28,7 +28,7 @@ export default function SettingsPage() {
 
   useEffect(() => {
     whoami().then((res) => {
-      setAppId(res.data?.appId ?? null);
+      setAppId(res.data?.app_id ?? null);
       setLoading(false);
     });
     refreshKeys();

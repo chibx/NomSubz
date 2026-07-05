@@ -16,46 +16,6 @@ import { Decimal } from "decimal.js";
 import { CALLBACK_URL } from "@/app/shared/constants";
 import { uuidv4 } from "uuidv7";
 
-// TODO: Adding a cache would suffice but the benefits in hackathon wouldn't be much
-export const isSubscriberForApp = toGoErrorRet(async (appId: string, subscriberId: bigint) => {
-    let result = false;
-    const b = await appDB
-        .select({
-            a: sql<number>`1`,
-        })
-        .from(subscribers)
-        .where(and(eq(subscribers.appId, appId), eq(subscribers.subscriberId, subscriberId)));
-
-    if (b.length > 0) {
-        result = true;
-    }
-    return result;
-});
-
-export const getSubscription = toGoErrorRet((appId: string, subscriberId: bigint, subscriptionId: string) => {
-    return appDB
-        .select({
-            id: subscriptions.id,
-            amount: subscriptions.amount,
-            createdAt: subscriptions.createdAt,
-            startTime: subscriptions.startTime,
-            endTime: subscriptions.endTime,
-            status: subscriptions.status,
-            planName: plans.name,
-            planType: plans.type,
-        })
-        .from(subscribers)
-        .innerJoin(subscriptions, eq(subscribers.subscriberId, subscriptions.subscriberId))
-        .innerJoin(plans, eq(plans.id, subscriptions.planId))
-        .where(
-            and(
-                eq(subscribers.appId, appId),
-                eq(subscriptions.subscriberId, subscriberId),
-                eq(subscriptions.id, subscriptionId),
-            ),
-        );
-});
-
 type ProrateOption = {
     oldAmount: string;
     newAmount: string;
@@ -110,7 +70,8 @@ type handleSuccessfulPlanChangeArg = ProrateResult & {
 };
 
 type handleSuccessfulSubscriptionArg = {
-    amount: string;
+    planAmount: string;
+    amountToPay: string;
     planId: bigint;
     subscriberId: bigint;
     appId: string;
@@ -267,6 +228,13 @@ function runComplexUpdateTx({
             // this balance can be used in future payments, either in full or partially
             if (prorationResult.surplus) {
                 promises.push(
+                    tx
+                        .update(subscribers)
+                        .set({ residualAmount: prorationResult.surplus })
+                        .where(eq(subscribers.subscriberId, arg.subscriberId)),
+                );
+
+                promises.push(
                     tx.insert(applicationLogs).values({
                         appId: arg.appId,
                         event: ApplicationLogEvents.PLAN_CHANGE,
@@ -281,13 +249,6 @@ function runComplexUpdateTx({
                             currentDate: currentDate.toISOString(),
                         } satisfies ApplicationLogMeta[ApplicationLogEvents.PLAN_CHANGE],
                     }),
-                );
-
-                promises.push(
-                    tx
-                        .update(subscribers)
-                        .set({ residualAmount: prorationResult.surplus })
-                        .where(eq(subscribers.subscriberId, arg.subscriberId)),
                 );
             }
         }
@@ -394,6 +355,46 @@ export const updateSubscription = toGoErrorRet(async (arg: UpdateSubscriptionArg
     return;
 });
 
+// TODO: Adding a cache would suffice but the benefits in hackathon wouldn't be much
+export const isSubscriberForApp = toGoErrorRet(async (appId: string, subscriberId: bigint) => {
+    let result = false;
+    const b = await appDB
+        .select({
+            a: sql<number>`1`,
+        })
+        .from(subscribers)
+        .where(and(eq(subscribers.appId, appId), eq(subscribers.subscriberId, subscriberId)));
+
+    if (b.length > 0) {
+        result = true;
+    }
+    return result;
+});
+
+export const getSubscription = toGoErrorRet((appId: string, subscriberId: bigint, subscriptionId: string) => {
+    return appDB
+        .select({
+            id: subscriptions.id,
+            amount: subscriptions.amount,
+            createdAt: subscriptions.createdAt,
+            startTime: subscriptions.startTime,
+            endTime: subscriptions.endTime,
+            status: subscriptions.status,
+            planName: plans.name,
+            planType: plans.type,
+        })
+        .from(subscribers)
+        .innerJoin(subscriptions, eq(subscribers.subscriberId, subscriptions.subscriberId))
+        .innerJoin(plans, eq(plans.id, subscriptions.planId))
+        .where(
+            and(
+                eq(subscribers.appId, appId),
+                eq(subscriptions.subscriberId, subscriberId),
+                eq(subscriptions.id, subscriptionId),
+            ),
+        );
+});
+
 export async function handleSuccessfulPlanChange(arg: handleSuccessfulPlanChangeArg) {
     return appDB.transaction(async (tx) => {
         const promises: Promise<unknown>[] = [];
@@ -459,7 +460,7 @@ export async function handleSuccessfulSubscription(arg: handleSuccessfulSubscrip
                 cardId: arg.cardId,
                 startTime: startTime,
                 endTime: endTime,
-                amount: arg.amount,
+                amount: arg.amountToPay,
                 createdAt: startTime,
             })
             .returning({ subscriptionId: subscriptions.id });
@@ -477,7 +478,7 @@ export async function handleSuccessfulSubscription(arg: handleSuccessfulSubscrip
                 subscriberId: arg.subscriberId,
                 transactionId: transactionId,
                 subscriptionId: res[0].subscriptionId,
-                amount: arg.amount,
+                amount: arg.planAmount,
                 cardToken: arg.cardToken,
                 createdAt: arg.currentDate,
             }),
@@ -485,7 +486,8 @@ export async function handleSuccessfulSubscription(arg: handleSuccessfulSubscrip
                 appId: arg.appId,
                 event: ApplicationLogEvents.PLAN_CHANGE,
                 metadata: {
-                    amount: arg.amount,
+                    newPlanAmount: arg.planAmount,
+                    amountToPay: arg.amountToPay,
                     planId: arg.planId.toString(),
                     appId: arg.appId,
                     currentDate: startTime.toISOString(),
@@ -496,3 +498,12 @@ export async function handleSuccessfulSubscription(arg: handleSuccessfulSubscrip
         ]);
     });
 }
+
+export const updateCustomerResidual = toGoErrorRet((subscriberId: bigint, newResidual: string) => {
+    return appDB
+        .update(subscribers)
+        .set({
+            residualAmount: newResidual,
+        })
+        .where(eq(subscribers.subscriberId, subscriberId));
+});

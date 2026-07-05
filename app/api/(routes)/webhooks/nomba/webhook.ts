@@ -73,8 +73,9 @@ export async function doPlanSubscriptionWebHook(
 
     const [, err$4] = await toGoErrorRet(() =>
         handleSuccessfulSubscription({
-            amount: extraData.amount,
+            planAmount: extraData.planAmount,
             planId: BigInt(extraData.planId),
+            amountToPay: extraData.amountToPay,
             subscriberId: BigInt(extraData.subscriberId),
             appId: extraData.appId,
             currentDate: new Date(extraData.currentDate),

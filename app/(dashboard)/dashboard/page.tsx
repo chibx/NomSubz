@@ -41,7 +41,7 @@ export default function DashboardHomePage() {
       <h1 className="text-2xl font-extrabold tracking-tight text-foreground">Dashboard</h1>
       <p className="mt-1 text-sm text-muted">{appId ? `Signed in as app ${appId}` : "Overview of your account."}</p>
 
-      <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
           <div key={stat.label} className="rounded-xl border border-border bg-surface p-5">
             <p className="text-xs font-medium text-muted">{stat.label}</p>
@@ -59,7 +59,7 @@ export default function DashboardHomePage() {
         </div>
       ) : null}
 
-      <div className="mt-8 grid grid-cols-3 gap-4">
+      <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <Link
           href="/plans"
           className="rounded-xl border border-border bg-surface p-5 transition-colors hover:border-brand-tint"

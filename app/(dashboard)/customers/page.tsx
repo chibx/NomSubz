@@ -83,7 +83,7 @@ export default function CustomersPage() {
           <EmptyState title="No customers yet" description="No GET list route exists yet on the backend — add a customer above to test creation." />
         ) : (
           <div className="overflow-hidden rounded-xl border border-border bg-surface">
-            <table className="w-full text-left text-sm">
+            <div className="table-wrap"><table className="w-full text-left text-sm">
               <thead className="border-b border-border bg-background">
                 <tr>
                   <th className="px-5 py-3 font-medium text-muted">User ID</th>
@@ -104,7 +104,7 @@ export default function CustomersPage() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           </div>
         )}
       </div>

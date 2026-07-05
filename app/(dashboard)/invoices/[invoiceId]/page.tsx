@@ -30,7 +30,7 @@ export default function InvoiceDetailPage() {
   if (!customerId) {
     return (
       <p className="text-sm text-status-failed-fg">
-        Missing customer context — open this page from a customer&apos;s invoice list.
+        Missing customer context. Open this page from a customer&apos;s invoice list.
       </p>
     );
   }
@@ -47,7 +47,7 @@ export default function InvoiceDetailPage() {
 
       {!invoice ? (
         <p className="mt-4 text-sm text-muted">
-          No data returned — the invoice detail endpoint is still a stub on the backend.
+          No data returned. The invoice detail endpoint is still a stub on the backend.
         </p>
       ) : (
         <div className="mt-6 max-w-lg rounded-xl border border-border bg-surface p-6">

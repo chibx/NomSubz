@@ -7,7 +7,7 @@ import { login, login2FA } from "@/app/lib/api";
 
 type Step = "credentials" | "otp";
 
-// Stable Unsplash photo — person at desk with financial data, forced greyscale via CSS
+// Stable Unsplash photo -- person at desk with financial data, forced greyscale via CSS
 const HERO_IMG = "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1600&q=95&fit=crop";
 
 export default function LoginPage() {
@@ -124,9 +124,9 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* RIGHT: Full-height image — desktop only */}
+      {/* RIGHT: Full-height image . desktop only */}
       <div className="relative hidden flex-1 overflow-hidden md:block">
-        {/* Photo: professional working with financial data — Unsplash, free license */}
+        {/* Photo: professional working with financial data . Unsplash, free license */}
         <img
           src={HERO_IMG}
           alt="Professional managing business payments"
@@ -145,7 +145,7 @@ export default function LoginPage() {
         <div className="absolute bottom-10 left-10 right-10">
           <blockquote className="max-w-sm">
             <p className="text-[17px] font-semibold leading-snug text-white">
-              "From first charge to hundredth renewal — all automated."
+              "From first charge to hundredth renewal, all automated."
             </p>
             <footer className="mt-3 text-[13px] font-medium text-white/60">NomSubz billing engine</footer>
           </blockquote>

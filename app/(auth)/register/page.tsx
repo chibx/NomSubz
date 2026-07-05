@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { register } from "@/app/lib/api";
 
-// Register: image on the LEFT, form on the RIGHT — mirrored from login
-// Stable Unsplash photo — entrepreneur at modern workspace, business growth
+// Register: image on the LEFT, form on the RIGHT -- mirrored from login
+// Stable Unsplash photo -- entrepreneur at modern workspace, business growth
 const HERO_IMG = "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=1600&q=95&fit=crop";
 
 export default function RegisterPage() {
@@ -34,9 +34,9 @@ export default function RegisterPage() {
   return (
     <div className="flex min-h-screen bg-background">
 
-      {/* LEFT: Full-height image — desktop only, mirrored from login */}
+      {/* LEFT: Full-height image . desktop only, mirrored from login */}
       <div className="relative hidden flex-1 overflow-hidden md:block">
-        {/* Photo: team collaborating on business growth — Unsplash, free license */}
+        {/* Photo: team collaborating on business growth . Unsplash, free license */}
         <img
           src={HERO_IMG}
           alt="Business team collaborating on growth"
@@ -51,7 +51,7 @@ export default function RegisterPage() {
         {/* Gradient depth layer */}
         <div className="absolute inset-0"
           style={{ background: "linear-gradient(225deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.12) 55%, rgba(0,0,0,0.4) 100%)" }} />
-        {/* Floating stats — product proof */}
+        {/* Floating stats . product proof */}
         <div className="absolute bottom-10 left-10 right-10">
           <div className="flex flex-col gap-4">
             {[

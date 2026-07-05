@@ -74,7 +74,7 @@ export default function CustomerDetailPage() {
         {customer?.userId ?? "Customer"}
       </h1>
       <p className="mt-1 text-sm text-muted">
-        Customer since {customer ? new Date(customer.createdAt).toLocaleDateString() : "—"}
+        Customer since {customer ? new Date(customer.createdAt).toLocaleDateString() : "-"}
       </p>
 
       {/* Payment methods */}

@@ -19,7 +19,7 @@ export default function DashboardHomePage() {
       setAppId(whoamiRes.data?.app_id ?? null);
       setAnalytics(analyticsRes.data);
       // No /api/analytics route exists yet on the backend, so this will
-      // come back 404 — that's expected, not a frontend bug.
+      // come back 404 -- that's expected, not a frontend bug.
       setUnreachable(analyticsRes.status === 404);
       setLoading(false);
     });
@@ -30,10 +30,10 @@ export default function DashboardHomePage() {
   }, []);
 
   const stats = [
-    { label: "Total revenue", value: analytics ? formatNaira(analytics.TotalRevenue) : "—" },
-    { label: "New customers", value: analytics?.NewUsers ?? "—" },
-    { label: "Lost customers", value: analytics?.LostUsers ?? "—" },
-    { label: "Active subscriptions", value: analytics?.OngoingSubscriptions ?? "—" },
+    { label: "Total revenue", value: analytics ? formatNaira(analytics.TotalRevenue) : "-" },
+    { label: "New customers", value: analytics?.NewUsers ?? "-" },
+    { label: "Lost customers", value: analytics?.LostUsers ?? "-" },
+    { label: "Active subscriptions", value: analytics?.OngoingSubscriptions ?? "-" },
   ];
 
   return (

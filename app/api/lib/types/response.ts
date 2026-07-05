@@ -1,7 +1,7 @@
 import { InferEnum } from "drizzle-orm";
 import { ValidationError } from "../utils/utils";
-import { NullT, PlanType } from "./types";
-import { planStatusEnum, subscriptionsStatusEnum } from "../db/schema";
+import { NullT, PlanStatus, PlanType } from "./types";
+import { subscriptionsStatusEnum } from "../db/schema";
 
 export type StructuredResponse<T = unknown> = {
     status: number;
@@ -59,7 +59,7 @@ export type GetPlanResponse = {
     name: string;
     amount: string;
     currency: string;
-    status: InferEnum<typeof planStatusEnum>;
+    status: PlanStatus;
     type: PlanType;
     details: unknown;
     createdAt: string;

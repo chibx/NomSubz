@@ -25,19 +25,19 @@ export function Sidebar() {
 
   return (
     <aside className="fixed inset-y-0 left-0 z-50 flex w-64 flex-col"
-      style={{ background: "#0F0A0D", borderRight: "1px solid rgba(255,255,255,0.06)" }}>
+      style={{ background: "var(--surface)", borderRight: "1px solid var(--border)" }}>
 
       {/* Logo */}
-      <div className="flex items-center gap-3 px-6 py-6" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand flex-shrink-0">
+      <div className="flex items-center gap-3 px-6 py-6" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-foreground flex-shrink-0">
           <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
             <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
               stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </div>
         <div>
-          <p className="text-[16px] font-black tracking-tight text-white">NomSubz</p>
-          <p className="text-[10px] font-medium" style={{ color: "rgba(196,137,154,0.7)" }}>Dashboard</p>
+          <p className="text-[16px] font-black tracking-tight text-foreground">NomSubz</p>
+          <p className="text-[10px] font-medium" style={{ color: "var(--muted-foreground)" }}>Dashboard</p>
         </div>
       </div>
 
@@ -49,9 +49,9 @@ export function Sidebar() {
             <Link key={item.href} href={item.href}
               className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all"
               style={{
-                background: active ? "rgba(117,48,65,0.25)" : "transparent",
-                color: active ? "#e8b4c0" : "rgba(255,255,255,0.4)",
-                borderLeft: active ? "2px solid #753041" : "2px solid transparent",
+                background: active ? "var(--brand-soft)" : "transparent",
+                color: active ? "var(--foreground)" : "var(--muted)",
+                borderLeft: active ? "2px solid var(--foreground)" : "2px solid transparent",
               }}>
               <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d={item.icon} />
@@ -63,12 +63,12 @@ export function Sidebar() {
       </nav>
 
       {/* Logout */}
-      <div className="px-3 pb-6" style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "16px" }}>
+      <div className="px-3 pb-6" style={{ borderTop: "1px solid var(--border-subtle)", paddingTop: "16px" }}>
         <button onClick={handleLogout}
           className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all"
-          style={{ color: "rgba(255,255,255,0.3)" }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(255,100,100,0.8)")}
-          onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.3)")}>
+          style={{ color: "var(--muted)" }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "#b91c1c")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "var(--muted)")}>
           <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
           </svg>

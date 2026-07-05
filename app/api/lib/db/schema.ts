@@ -28,7 +28,7 @@ export enum CardConfirmationStatus {
 
 export type AnalyticsPeriodType = number & {};
 
-export const subscriptionsStatusEnum = pgEnum("subscription_status", ["pending", "active", "cancelled", "paused"]);
+export const subscriptionsStatusEnum = pgEnum("subscription_status", ["active", "cancelled", "paused", "past_due"]);
 export const planStatusEnum = pgEnum("plan_status", ["enabled", "disabled"]);
 export const planTypeEnum = pgEnum("plan_type", ["weekly", "monthly", "annually"]);
 export const paymentStatusEnum = pgEnum("payment_status", ["success", "pending", "failed"]);
@@ -282,7 +282,7 @@ export const payments = pgTable(
         appId: uuid("app_id").notNull(),
         subscriberId: bigint("subscriber_id", { mode: "bigint" }).notNull(),
         subscriptionId: uuid("subscription_id").notNull(),
-        cardToken: text("card_token").notNull(),
+        cardId: text("card_id"),
         orderReference: text("order_reference").notNull(),
         amount: decimal("amount", {
             mode: "string",
@@ -303,6 +303,10 @@ export const payments = pgTable(
             foreignColumns: [subscribers.subscriberId],
         }).onDelete("cascade"),
         foreignKey({
+            columns: [table.cardId],
+            foreignColumns: [subscriberCards.id],
+        }).onDelete("set null"),
+        foreignKey({
             columns: [table.appId],
             foreignColumns: [applications.id],
         }).onDelete("cascade"),
@@ -320,6 +324,7 @@ export const applicationLogs = pgTable(
             .primaryKey()
             .$defaultFn(() => uuidv7()),
         appId: uuid("app_id").notNull(),
+        subscriberId: bigint("subscriber_id", { mode: "bigint" }),
         event: text("event").notNull(),
         description: text("description"),
         metadata: jsonb("metadata").default({}),
@@ -333,6 +338,10 @@ export const applicationLogs = pgTable(
             columns: [table.appId],
             foreignColumns: [applications.id],
         }).onDelete("cascade"),
+        foreignKey({
+            columns: [table.subscriberId],
+            foreignColumns: [subscribers.subscriberId],
+        }).onDelete("set null"),
     ],
 );
 

@@ -125,9 +125,26 @@ export function Mist() {
     window.addEventListener("resize", resize);
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const isMobile = window.innerWidth < 768 || "ontouchstart" in window;
+
+    // On mobile: render at even lower res, throttle to ~20fps
+    if (isMobile) {
+      canvas.width = Math.round(canvas.width * 0.6);
+      canvas.height = Math.round(canvas.height * 0.6);
+      gl.viewport(0, 0, canvas.width, canvas.height);
+    }
+
     let raf = 0;
     const start = performance.now();
+    let lastFrame = 0;
+    const interval = isMobile ? 50 : 0; // ~20fps on mobile, uncapped on desktop
+
     const frame = (now: number) => {
+      if (now - lastFrame < interval) {
+        if (!reduced) raf = requestAnimationFrame(frame);
+        return;
+      }
+      lastFrame = now;
       mx += (tmx - mx) * 0.03;
       my += (tmy - my) * 0.03;
       gl.uniform2f(uRes, canvas.width, canvas.height);

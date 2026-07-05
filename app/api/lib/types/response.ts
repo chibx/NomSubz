@@ -103,3 +103,53 @@ export interface ListSubscriptionsResponse {
     nextPage: number | null;
     cursor: string | null;
 }
+
+export type ListAppInvoicesResponse = {
+    invoices: Array<{
+        paymentId: string;
+        amount: string;
+        status: string;
+        userId: string;
+        transactionId: string | null;
+        orderReference: string;
+        createdAt: string;
+        updatedAt: string;
+        subscriptionId: string;
+        planName: string;
+        planType: PlanType;
+    }>;
+    nextPage: number | null;
+    cursor: string | null;
+};
+
+export type ListCustomerInvoiceRequest = {
+    invoices: Array<{
+        paymentId: string;
+        amount: string;
+        status: string;
+        transactionId: string | null;
+        orderReference: string;
+        createdAt: string;
+        updatedAt: string;
+        subscriptionId: string;
+        planName: string;
+        planType: PlanType;
+    }>;
+    nextPage: number | null;
+    cursor: string | null;
+};
+
+export type GetInvoiceResponse = {
+    paymentId: string;
+    amount: string;
+    status: string;
+    transactionId: string | null;
+    orderReference: string;
+    createdAt: string;
+    updatedAt: string;
+    subscriptionId: string;
+    planName: string;
+    planType: PlanType;
+    planAmount: string;
+    currency: string;
+};

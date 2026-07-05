@@ -17,6 +17,7 @@ export type ApplicationLogMeta = {
         currentDate: string;
         userRemaining?: string;
         amountToPay?: string;
+        transactionId: string;
     };
     [ApplicationLogEvents.PLAN_SUBSCRIPTION]: {
         appId: string;
@@ -24,6 +25,7 @@ export type ApplicationLogMeta = {
         planId: string;
         amount: string;
         currentDate: string;
+        transactionId: string;
     };
 };
 
@@ -73,6 +75,7 @@ export type PlanUpgradeWebHook = {
     subscriberId: string;
     appId: string;
     operationDate: string;
+    transactionId: string;
 };
 
 export type PlanSubscriptionWebhook = {

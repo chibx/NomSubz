@@ -1,4 +1,141 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { getAppId } from "@/app/api/lib/auth";
+import { appDB } from "@/app/api/lib/db/db";
+import { payments, subscriptions, plans, subscribers } from "@/app/api/lib/db/schema";
+import {
+    DUMMY_401_MESSAGE,
+    DUMMY_500_MESSAGE,
+    STATUS_BAD_REQUEST,
+    STATUS_FORBIDDEN,
+    STATUS_INTERNAL_SERVER_ERROR,
+    STATUS_NOT_FOUND,
+    STATUS_UNAUTHORIZED,
+} from "@/app/api/lib/utils/constants";
+import { dateToString, logger, structuredResponse, toGoErrorRet } from "@/app/api/lib/utils/utils";
+import { isSubscriberForApp } from "@/app/api/lib/utils/db";
+import { and, eq } from "drizzle-orm";
+import PDFDocument from "pdfkit";
 
 // Generate and return a downloadable PDF receipt
-export async function GET(req: NextRequest) {}
+export async function GET(req: NextRequest, ctx: RouteContext<"/api/customers/[customerId]/invoices/[invoiceId]/pdf">) {
+    const { customerId, invoiceId } = await ctx.params;
+    const appId = getAppId(req);
+    if (appId === null) {
+        return structuredResponse(STATUS_UNAUTHORIZED, DUMMY_401_MESSAGE);
+    }
+
+    const [subscriberId, error$1] = await toGoErrorRet(() => BigInt(customerId))();
+    if (error$1 !== null) {
+        return structuredResponse(STATUS_BAD_REQUEST, `Expected to see a valid customer id, got ${customerId}`);
+    }
+
+    const [isAuthorized, error$2] = await isSubscriberForApp(appId, subscriberId);
+
+    if (error$2 !== null) {
+        logger.withTag(req.url).error("Could not verify app to subscriber privilege from db:", error$2);
+        return structuredResponse(STATUS_INTERNAL_SERVER_ERROR, DUMMY_500_MESSAGE);
+    }
+
+    if (isAuthorized === false) {
+        return structuredResponse(STATUS_FORBIDDEN, "No rights to access this subscriber's data");
+    }
+
+    const [result, error$3] = await toGoErrorRet(() =>
+        appDB
+            .select({
+                paymentId: payments.id,
+                amount: payments.amount,
+                status: payments.status,
+                transactionId: payments.transactionId,
+                orderReference: payments.orderReference,
+                createdAt: payments.createdAt,
+                updatedAt: payments.updatedAt,
+                subscriptionId: payments.subscriptionId,
+                planName: plans.name,
+                planType: plans.type,
+                planAmount: plans.amount,
+                currency: plans.currency,
+                customerEmail: subscribers.email,
+                customerUserId: subscribers.userId,
+            })
+            .from(payments)
+            .innerJoin(subscriptions, eq(subscriptions.id, payments.subscriptionId))
+            .innerJoin(plans, eq(plans.id, subscriptions.planId))
+            .innerJoin(subscribers, eq(subscribers.subscriberId, payments.subscriberId))
+            .where(and(eq(payments.subscriberId, subscriberId), eq(payments.id, invoiceId))),
+    )();
+
+    if (error$3 !== null) {
+        logger.withTag(req.url).error("Could not fetch invoice for PDF:", error$3);
+        return structuredResponse(STATUS_INTERNAL_SERVER_ERROR, DUMMY_500_MESSAGE);
+    }
+
+    if (result.length === 0) {
+        return structuredResponse(STATUS_NOT_FOUND, "Invoice not found");
+    }
+
+    const invoice = result[0];
+
+    try {
+        const doc = new PDFDocument({ margin: 50, size: "A4" });
+        const chunks: Buffer[] = [];
+
+        doc.on("data", (chunk) => chunks.push(chunk));
+
+        // Header
+        doc.fontSize(20).font("Helvetica-Bold").text("INVOICE / RECEIPT", { align: "center" });
+        doc.moveDown();
+
+        // Invoice details
+        doc.fontSize(12).font("Helvetica");
+        doc.text(`Invoice ID: ${invoice.paymentId}`);
+        doc.text(`Transaction ID: ${invoice.transactionId || "N/A"}`);
+        doc.text(`Order Reference: ${invoice.orderReference}`);
+        doc.text(`Date: ${dateToString(invoice.createdAt)}`);
+        doc.text(`Status: ${invoice.status.toUpperCase()}`);
+        doc.moveDown();
+
+        // Customer details
+        doc.fontSize(14).font("Helvetica-Bold").text("Bill To:");
+        doc.fontSize(12).font("Helvetica");
+        doc.text(`Customer ID: ${invoice.customerUserId}`);
+        doc.text(`Email: ${invoice.customerEmail}`);
+        doc.moveDown();
+
+        // Subscription details
+        doc.fontSize(14).font("Helvetica-Bold").text("Subscription Details:");
+        doc.fontSize(12).font("Helvetica");
+        doc.text(`Plan: ${invoice.planName} (${invoice.planType})`);
+        doc.text(`Subscription ID: ${invoice.subscriptionId}`);
+        doc.moveDown();
+
+        // Payment details
+        doc.fontSize(14).font("Helvetica-Bold").text("Payment Details:");
+        doc.fontSize(12).font("Helvetica");
+        doc.text(`Amount: ${invoice.currency} ${invoice.amount}`);
+        doc.text(`Plan Amount: ${invoice.currency} ${invoice.planAmount}`);
+        doc.moveDown();
+
+        // Footer
+        doc.fontSize(10).font("Helvetica").text("Thank you for your payment!", { align: "center" });
+        doc.text("Generated by NomSubz", { align: "center" });
+
+        doc.end();
+
+        const pdfBuffer = await new Promise<Buffer<ArrayBuffer>>((resolve, reject) => {
+            doc.on("end", () => resolve(Buffer.concat(chunks)));
+            doc.on("error", reject);
+        });
+
+        return new NextResponse(pdfBuffer, {
+            headers: {
+                "Content-Type": "application/pdf",
+                "Content-Disposition": `attachment; filename="invoice-${invoice.paymentId}.pdf"`,
+                "Content-Length": pdfBuffer.length.toString(),
+            },
+        });
+    } catch (error) {
+        logger.withTag(req.url).error("Could not generate PDF:", error);
+        return structuredResponse(STATUS_INTERNAL_SERVER_ERROR, "Failed to generate PDF");
+    }
+}

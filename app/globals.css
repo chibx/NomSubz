@@ -111,3 +111,53 @@ input, select, textarea, button { font-family: inherit; }
   50%      { transform: translateY(-18px) rotate(1.5deg); }
 }
 .animate-drift { animation: drift 9s ease-in-out infinite; }
+
+/* ── silk-era polish ── */
+
+/* frosted panel for content sitting over the SilkHero */
+.glass-dark {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px) saturate(1.15);
+  -webkit-backdrop-filter: blur(20px) saturate(1.15);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+/* wine sweep-fill button (use on light sections) */
+.btn-sweep {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition: color 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.btn-sweep::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--brand);
+  border-radius: inherit;
+  transform: translateY(101%);
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.btn-sweep:hover { color: #fff; }
+.btn-sweep:hover::before { transform: translateY(0); }
+
+/* link underline sweep */
+.link-sweep { position: relative; }
+.link-sweep::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 100%;
+  height: 1.5px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.link-sweep:hover::after { transform: scaleX(1); transform-origin: left; }
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-sweep, .btn-sweep::before, .link-sweep::after { transition: none; }
+}

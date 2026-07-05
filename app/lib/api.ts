@@ -4,8 +4,16 @@
  * JSON elsewhere. No mock data anywhere.
  */
 
-import { StructuredResponse } from "@/app/api/lib/types/response";
-import { PlanStatus, PlanType, SubscriptionStatus } from "@/app/api/lib/types/types";
+import {
+    PlanType as PlanType$1,
+    PlanStatus as PlanStatus$1,
+    SubscriptionStatus as SubscriptionStatus$1,
+} from "../api/lib/types/types";
+import { StructuredResponse } from "../api/lib/types/response";
+
+export type PlanType = PlanType$1;
+export type PlanStatus = PlanStatus$1;
+export type SubscriptionStatus = SubscriptionStatus$1;
 
 export type Plan = {
     id: string;

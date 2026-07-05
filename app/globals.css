@@ -1,19 +1,19 @@
 @import "tailwindcss";
 
 :root {
-  --background: #F5F5F7;
-  --background-2: #EBEBED;
-  --foreground: #0A0A0B;
-  --brand: #753041;
-  --brand-hover: #5c2433;
-  --brand-tint: #B06070;
-  --brand-soft: #F7EDEF;
-  --muted: #6E6E73;
-  --muted-foreground: #AEAEB2;
-  --border: #D8D8DC;
-  --border-subtle: #E8E8EA;
+  --background: #FFFFFF;
+  --background-2: #FAFAFA;
+  --foreground: #0A0A0A;
+  --brand: #0A0A0A;
+  --brand-hover: #2A2A2E;
+  --brand-tint: #6B6B70;
+  --brand-soft: #F4F4F5;
+  --muted: #6B6B70;
+  --muted-foreground: #A1A1AA;
+  --border: #E4E4E7;
+  --border-subtle: #F0F0F2;
   --surface: #FFFFFF;
-  --surface-raised: #F9F9FB;
+  --surface-raised: #FAFAFA;
   --status-success-bg: #dcfce7;
   --status-success-fg: #166534;
   --status-pending-bg: #fef3c7;
@@ -21,7 +21,7 @@
   --status-failed-bg: #fee2e2;
   --status-failed-fg: #991b1b;
   --status-paused-bg: #f0f0f2;
-  --status-paused-fg: #6E6E73;
+  --status-paused-fg: #6B6B70;
 }
 
 @theme inline {
@@ -62,52 +62,115 @@ body {
 
 input, select, textarea, button { font-family: inherit; }
 
-@keyframes tilt-in {
-  0%   { opacity: 0; transform: perspective(1200px) rotateY(-20deg) rotateX(8deg) translateY(50px) scale(0.9); }
-  60%  { opacity: 1; transform: perspective(1200px) rotateY(3deg) rotateX(-2deg) translateY(-8px) scale(1.01); }
-  80%  { transform: perspective(1200px) rotateY(-2deg) rotateX(1deg) translateY(3px) scale(0.998); }
-  100% { transform: perspective(1200px) rotateY(-7deg) rotateX(4deg) translateY(0) scale(1); }
-}
+::selection { background: #0A0A0A; color: #fff; }
 
-@keyframes float {
-  0%, 100% { transform: perspective(1200px) rotateY(-7deg) rotateX(4deg) translateY(0px); }
-  50%       { transform: perspective(1200px) rotateY(-9deg) rotateX(6deg) translateY(-14px); }
-}
-
+/* ── motion primitives ── */
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes fade-in {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
-
-@keyframes shimmer {
-  0%   { background-position: -200% center; }
-  100% { background-position: 200% center; }
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(46px) scale(0.985); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
+.animate-fade-up { animation: fade-up 0.65s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-fade-in { animation: fade-in 0.5s ease both; }
+.animate-rise-in { animation: rise-in 1s cubic-bezier(0.22, 1, 0.36, 1) both; }
 
-.animate-tilt-in  { animation: tilt-in 1.1s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
-.animate-float    { animation: tilt-in 1.1s cubic-bezier(0.22, 1, 0.36, 1) forwards, float 6s ease-in-out 1.1s infinite; }
-.animate-fade-up  { animation: fade-up 0.65s cubic-bezier(0.22, 1, 0.36, 1) both; }
-.animate-fade-in  { animation: fade-in 0.5s ease both; }
-
-/* ── scroll reveal ── */
+/* scroll reveal (kept for existing Reveal component) */
 .reveal {
   opacity: 0;
   transform: translateY(36px);
   transition: opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1), transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.reveal.is-revealed {
-  opacity: 1;
-  transform: translateY(0);
+.reveal.is-revealed { opacity: 1; transform: translateY(0); }
+
+/* ── Linear-era surface language ── */
+
+/* hairline card that lifts on hover */
+.card-lift {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 0.35s ease;
+}
+.card-lift:hover {
+  transform: translateY(-3px);
+  border-color: #d4d4d8;
+  box-shadow: 0 12px 32px -16px rgba(10, 10, 10, 0.18);
+}
+.card-lift:not(:hover) { transform: translateY(0); }
+
+/* frosted top nav */
+.nav-blur {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
-/* ── slow drift for the blob wrapper ── */
-@keyframes drift {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50%      { transform: translateY(-18px) rotate(1.5deg); }
+/* primary button — ink pill, subtle press */
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--brand); color: #fff;
+  border-radius: 10px;
+  transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.3s ease;
+  box-shadow: 0 1px 2px rgba(10,10,10,0.15), inset 0 1px 0 rgba(255,255,255,0.08);
 }
-.animate-drift { animation: drift 9s ease-in-out infinite; }
+.btn-primary:hover { background: var(--brand-hover); box-shadow: 0 6px 20px -8px rgba(10,10,10,0.4); }
+.btn-primary:active { transform: scale(0.98); }
+.btn-primary:focus-visible { outline: 2px solid #0A0A0A; outline-offset: 2px; }
+
+/* secondary — quiet outline */
+.btn-quiet {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--surface); color: var(--foreground);
+  border: 1px solid var(--border); border-radius: 10px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.btn-quiet:hover { border-color: #c8c8cc; background: var(--surface-raised); }
+
+/* underline sweep for text links */
+.link-sweep { position: relative; }
+.link-sweep::after {
+  content: ""; position: absolute; left: 0; bottom: -2px;
+  width: 100%; height: 1px; background: currentColor;
+  transform: scaleX(0); transform-origin: right;
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.link-sweep:hover::after { transform: scaleX(1); transform-origin: left; }
+
+/* keyboard-key style chip */
+.kbd {
+  border: 1px solid var(--border); border-bottom-width: 2px;
+  border-radius: 6px; background: var(--surface-raised);
+  padding: 1px 6px; font-size: 11px; color: var(--muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up, .animate-fade-in, .animate-rise-in { animation: none; }
+  .card-lift, .btn-primary, .btn-quiet, .link-sweep::after, .reveal { transition: none; }
+}
+
+/* ── perf ── */
+.animate-fade-up, .animate-fade-in, .animate-rise-in {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+/* Remove will-change after animation completes to free GPU layers */
+@keyframes clear-wc { to { will-change: auto; } }
+.animate-fade-up, .animate-fade-in { animation: fade-up 0.65s cubic-bezier(0.22,1,0.36,1) both, clear-wc 0s 1s forwards; }
+.animate-rise-in { animation: rise-in 1s cubic-bezier(0.22,1,0.36,1) both, clear-wc 0s 1.5s forwards; }
+
+/* Force composited layers only during transition */
+.card-lift { backface-visibility: hidden; }
+.btn-primary, .btn-quiet { backface-visibility: hidden; }
+
+/* Smooth scroll without jank */
+html { scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }

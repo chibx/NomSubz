@@ -5,11 +5,12 @@ import { GetWebhookUrlResponse } from "@/app/api/lib/types/response";
 import {
     STATUS_UNAUTHORIZED,
     DUMMY_401_MESSAGE,
-    DUMMY_500_MESSAGE,
     STATUS_INTERNAL_SERVER_ERROR,
     STATUS_OK,
+    DUMMY_400_MESSAGE,
+    STATUS_BAD_REQUEST,
 } from "@/app/api/lib/utils/constants";
-import { logger, structuredResponse, toGoErrorRet } from "@/app/api/lib/utils/utils";
+import { logger, structuredResponse, toGoErrorRet, toValidationError } from "@/app/api/lib/utils/utils";
 import { AddWebhookUrlSchema } from "@/app/api/lib/validation-schema/schema";
 import { eq } from "drizzle-orm";
 import { NextRequest } from "next/server";
@@ -26,7 +27,7 @@ export async function POST(req: NextRequest) {
     const [validatedBody, error$1] = await toGoErrorRet(async () => v.parse(AddWebhookUrlSchema, await req.json()))();
     if (error$1 !== null) {
         logger.withTag(req.url).error("Could not parse request json body", error$1);
-        return structuredResponse(STATUS_INTERNAL_SERVER_ERROR, DUMMY_500_MESSAGE);
+        return structuredResponse(STATUS_BAD_REQUEST, DUMMY_400_MESSAGE, null, toValidationError(error$1));
     }
 
     const [, error$2] = await toGoErrorRet(() =>

@@ -8,6 +8,7 @@ import { appDB } from "@/app/api/lib/db/db";
 import { applications } from "@/app/api/lib/db/schema";
 import { hashText } from "@/app/api/lib/auth";
 import {
+    DUMMY_400_MESSAGE,
     DUMMY_500_MESSAGE,
     STATUS_BAD_REQUEST,
     STATUS_INTERNAL_SERVER_ERROR,
@@ -26,7 +27,7 @@ export async function POST(req: NextRequest) {
 
     if (error$2 !== null) {
         logger.withTag(req.url).debug("", error$2);
-        return structuredResponse(STATUS_BAD_REQUEST, "Invalid request", null, toValidationError(error$2));
+        return structuredResponse(STATUS_BAD_REQUEST, DUMMY_400_MESSAGE, null, toValidationError(error$2));
     }
 
     const [hashedPassword, error$3] = await hashText(result.password);

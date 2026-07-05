@@ -66,6 +66,7 @@ export interface ParsedDbError {
 export enum WebHookTypes {
     PLAN_CHANGE_UPGRADE = "Plan Change - Upgrade",
     PLAN_SUBSCRIPTION = "Plan Subscription",
+    RESUBSCRIBE = "Resubscribe",
 }
 
 export type PlanUpgradeWebHook = {
@@ -100,7 +101,19 @@ export type PlanSubscriptionWebhook = {
       }
 );
 
-export type WebHookVariants = PlanUpgradeWebHook | PlanSubscriptionWebhook;
+export type ProcessPaymentWebHook = {
+    type: WebHookTypes.RESUBSCRIBE;
+    planId: string;
+    amountToPay: string;
+    userRemaining?: string;
+    subscriptionId: string;
+    subscriberId: string;
+    appId: string;
+    operationDate: string;
+    transactionId: string;
+};
+
+export type WebHookVariants = PlanUpgradeWebHook | PlanSubscriptionWebhook | ProcessPaymentWebHook;
 
 export type ProcessPaymentJobData = {
     subscriptionId: string;

@@ -1,9 +1,5 @@
 "use client";
 
-// Mist — light-theme hero background. Soft black/grey gradient forms
-// drifting over white, like ink diffusing in water. Pure WebGL,
-// zero dependencies, mouse-reactive, prefers-reduced-motion aware.
-// Falls back to plain white if WebGL is unavailable.
 import { useEffect, useRef } from "react";
 
 const FRAG = `
@@ -12,53 +8,62 @@ uniform vec2 u_res;
 uniform float u_time;
 uniform vec2 u_mouse;
 
-const vec3 WHITE  = vec3(1.0);
-const vec3 FOG    = vec3(0.965, 0.965, 0.97);
-const vec3 SILVER = vec3(0.86, 0.86, 0.875);
-const vec3 GRAPH  = vec3(0.55, 0.55, 0.58);
-const vec3 INK    = vec3(0.16, 0.16, 0.18);
+const vec3 WHITE = vec3(1.0);
+const vec3 SLATE = vec3(0.55, 0.55, 0.58);
+const vec3 DARK  = vec3(0.22, 0.22, 0.25);
+const vec3 INK   = vec3(0.06, 0.06, 0.08);
+const vec3 VOID  = vec3(0.02, 0.02, 0.03);
 
 vec2 hash(vec2 p){ p=vec2(dot(p,vec2(127.1,311.7)),dot(p,vec2(269.5,183.3))); return -1.0+2.0*fract(sin(p)*43758.5453123); }
 float noise(vec2 p){
   vec2 i=floor(p), f=fract(p);
-  vec2 u=f*f*(3.0-2.0*f);
+  vec2 u=f*f*f*(f*(f*6.0-15.0)+10.0);
   return mix(mix(dot(hash(i),f), dot(hash(i+vec2(1,0)),f-vec2(1,0)),u.x),
              mix(dot(hash(i+vec2(0,1)),f-vec2(0,1)), dot(hash(i+vec2(1,1)),f-vec2(1,1)),u.x),u.y);
 }
 float fbm(vec2 p){
-  float v=0.0, a=0.55;
+  float v=0.0, a=0.6;
   mat2 r=mat2(0.8,-0.6,0.6,0.8);
-  for(int i=0;i<5;i++){ v+=a*noise(p); p=r*p*2.03; a*=0.5; }
+  for(int i=0;i<7;i++){ v+=a*noise(p); p=r*p*2.1; a*=0.48; }
   return v;
 }
 
 void main(){
   vec2 uv = gl_FragCoord.xy / u_res.xy;
   vec2 p = uv; p.x *= u_res.x / u_res.y;
-  float t = u_time * 0.05;
-  vec2 m = (u_mouse - 0.5) * 0.25;
+  float t = u_time * 0.07;
+  vec2 m = (u_mouse - 0.5) * 0.35;
 
-  vec2 q = vec2(fbm(p + t + m), fbm(p + vec2(5.2,1.3) - t));
-  vec2 r = vec2(fbm(p + 2.3*q + vec2(1.7,9.2) + 0.12*t),
-                fbm(p + 2.3*q + vec2(8.3,2.8) - 0.10*t));
-  float f = fbm(p + 2.0*r);
+  vec2 q = vec2(fbm(p*1.2 + t + m), fbm(p*1.2 + vec2(5.2,1.3) - t));
+  vec2 r2 = vec2(fbm(p + 3.0*q + vec2(1.7,9.2) + 0.16*t),
+                 fbm(p + 3.0*q + vec2(8.3,2.8) - 0.14*t));
+  float f = fbm(p + 2.8*r2);
+
+  // sharp contrast: pow() snaps the blending edges harder
+  float f1 = pow(smoothstep(0.0, 0.5, f), 0.7);
+  float f2 = pow(smoothstep(0.1, 0.6, length(q)), 0.65);
+  float f3 = pow(smoothstep(0.2, 0.7, r2.y * 1.3), 0.6);
+  float f4 = pow(smoothstep(0.3, 0.8, f * length(r2)), 0.55);
 
   vec3 col = WHITE;
-  col = mix(col, FOG,    smoothstep(0.05, 0.75, f));
-  col = mix(col, SILVER, smoothstep(0.30, 0.95, length(q)) * 0.9);
-  col = mix(col, GRAPH,  smoothstep(0.55, 1.05, r.y * 1.15) * 0.5);
-  col = mix(col, INK,    smoothstep(0.78, 1.15, f * length(r)) * 0.35);
+  col = mix(col, SLATE, f1 * 0.95);
+  col = mix(col, DARK,  f2 * 0.9);
+  col = mix(col, INK,   f3 * 0.85);
+  col = mix(col, VOID,  f4 * 0.75);
 
-  // keep the center airy so hero text sits on near-white
-  float clear = smoothstep(0.85, 0.25, distance(uv, vec2(0.42, 0.55)));
-  col = mix(col, WHITE, clear * 0.55);
+  // deep ink pools in corners
+  float corner = max(
+    smoothstep(0.5, 0.0, distance(uv, vec2(0.0, 0.0))),
+    smoothstep(0.6, 0.0, distance(uv, vec2(1.0, 0.0)))
+  );
+  col = mix(col, VOID, corner * 0.6);
 
-  // fade to pure white at the bottom so the page continues seamlessly
-  col = mix(col, WHITE, smoothstep(0.35, 0.0, uv.y));
+  // fade bottom to white so rest of page blends
+  col = mix(col, WHITE, smoothstep(0.18, 0.0, uv.y) * 0.85);
 
-  // grain kills banding on subtle gradients
+  // grain
   float g = fract(sin(dot(gl_FragCoord.xy, vec2(12.9898,78.233))) * 43758.5453);
-  col += (g - 0.5) * 0.012;
+  col += (g - 0.5) * 0.025;
 
   gl_FragColor = vec4(col, 1.0);
 }
@@ -112,7 +117,8 @@ export function Mist() {
     };
     window.addEventListener("pointermove", onMove, { passive: true });
 
-    const DPR = Math.min(window.devicePixelRatio || 1, 1.5) * 0.55;
+    const isMobile = window.innerWidth < 768 || "ontouchstart" in window;
+    const DPR = Math.min(window.devicePixelRatio || 1, 1.5) * (isMobile ? 0.35 : 0.6);
     const resize = () => {
       const p = canvas.parentElement;
       const w = p?.offsetWidth || window.innerWidth;
@@ -125,19 +131,10 @@ export function Mist() {
     window.addEventListener("resize", resize);
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const isMobile = window.innerWidth < 768 || "ontouchstart" in window;
-
-    // On mobile: render at even lower res, throttle to ~20fps
-    if (isMobile) {
-      canvas.width = Math.round(canvas.width * 0.6);
-      canvas.height = Math.round(canvas.height * 0.6);
-      gl.viewport(0, 0, canvas.width, canvas.height);
-    }
-
     let raf = 0;
     const start = performance.now();
     let lastFrame = 0;
-    const interval = isMobile ? 50 : 0; // ~20fps on mobile, uncapped on desktop
+    const interval = isMobile ? 50 : 0;
 
     const frame = (now: number) => {
       if (now - lastFrame < interval) {

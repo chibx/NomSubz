@@ -2,8 +2,8 @@ import { addWithSubscriptionDuration, logger, nombaClient, pgBoss } from "@/app/
 import { appDB } from "@/app/api/lib/db/db"; // Your Drizzle instance
 import { subscriptions } from "@/app/api/lib/db/schema";
 import { lte, eq, and, sql } from "drizzle-orm";
-import { ProcessPaymentJobData } from "../types/types";
-import { getSubscriptionDetails } from "./utils";
+import { DunningJobData, ProcessPaymentJobData } from "../types/types";
+import { attemptCharge, getSubscriptionDetails } from "./utils";
 import { CALLBACK_URL } from "@/app/shared/constants";
 import { fromDrizzle } from "pg-boss";
 
@@ -87,19 +87,43 @@ pgBoss.work<ProcessPaymentJobData>("process-payment", async ([job]) => {
                     retryLimit: 5,
                 },
             );
+
+            await tx.update(subscriptions).set({ status: "past_due" }).where(eq(subscriptions.id, subscriptionId));
+
+            await pgBoss.send(
+                "dunning-retry",
+                {
+                    subscriptionId,
+                    attempt: 1,
+                } as DunningJobData,
+                {
+                    startAfter: dunningPeriod, // pg-boss will hide this job for 3 days!
+                    db: fromDrizzle(tx, sql),
+                    retryLimit: 5,
+                },
+            );
         });
+    }
+});
 
-        await appDB.update(subscriptions).set({ status: "past_due" }).where(eq(subscriptions.id, subscriptionId));
+pgBoss.work<DunningJobData>("dunning-retry", async ([job]) => {
+    const { subscriptionId, attempt } = job.data;
 
-        await pgBoss.send(
-            "dunning-retry",
-            {
-                subscriptionId,
-                attempt: 1,
-            },
-            {
-                startAfter: dunningPeriod, // pg-boss will hide this job for 3 days!
-            },
-        );
+    // Try to charge them again...
+    const [, error$1] = await attemptCharge(subscriptionId);
+
+    if (error$1 === null) {
+        await appDB.update(subscriptions).set({ status: "active" }).where(eq(subscriptions.id, subscriptionId));
+    } else {
+        if (attempt === 1) {
+            await pgBoss.send(
+                "dunning-retry",
+                { subscriptionId, attempt: 2 },
+                { startAfter: 5 * 24 * 60 * 60, retryLimit: 5 },
+            );
+        } else {
+            // Final failure. Game over. Cancel the subscription.
+            await appDB.update(subscriptions).set({ status: "cancelled" }).where(eq(subscriptions.id, subscriptionId));
+        }
     }
 });

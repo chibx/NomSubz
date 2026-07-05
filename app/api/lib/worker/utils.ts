@@ -33,3 +33,7 @@ export const getSubscriptionDetails = toGoErrorRet(async (subscriptionId: string
         subscriberId: result[0].subscriberId,
     };
 });
+
+export const attemptCharge = toGoErrorRet(async (subscriptionId: string) => {
+    return true;
+});

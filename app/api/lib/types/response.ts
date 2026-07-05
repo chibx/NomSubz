@@ -76,17 +76,20 @@ export type CreateSubscriptionResponse = {
     checkoutLink?: string;
 };
 
+/** POST /api/auth/2fa/setup */
 export type Agree2FAResponse = {
     secret: string;
     totpURI: string;
     backupCodes: string[];
 };
 
+/** POST /api/auth/login */
 export type LoginResponse = {
     requires2FA?: boolean;
-    pendingToken?: string;
+    pendingToken?: string; // Should be sent back as cookie
 };
 
+/** GET /api/customers/[customerId]/subscriptions */
 export interface ListSubscriptionsResponse {
     subscriptions: Array<{
         id: string;
@@ -104,6 +107,7 @@ export interface ListSubscriptionsResponse {
     cursor: string | null;
 }
 
+/** GET /api/invoices */
 export type ListAppInvoicesResponse = {
     invoices: Array<{
         paymentId: string;
@@ -122,6 +126,7 @@ export type ListAppInvoicesResponse = {
     cursor: string | null;
 };
 
+/** GET /api/customers/[customerId]/invoices */
 export type ListCustomerInvoiceRequest = {
     invoices: Array<{
         paymentId: string;
@@ -139,6 +144,7 @@ export type ListCustomerInvoiceRequest = {
     cursor: string | null;
 };
 
+/** GET /api/customers/[customerId]/invoices/[invoiceId] */
 export type GetInvoiceResponse = {
     paymentId: string;
     amount: string;
@@ -154,6 +160,21 @@ export type GetInvoiceResponse = {
     currency: string;
 };
 
+/** GET /api/webhooks/endpoints */
 export type GetWebhookUrlResponse = {
     webhookUrl: string | null;
+};
+
+/** POST /api/auth/api-key */
+export type CreateAPIKeyResponse = {
+    apiKey: string;
+};
+
+/** GET /api/auth/api-key */
+export type GetApiKeysResponse = {
+    apiKeys: Array<{
+        id: string;
+        name: string;
+        createdAt: string;
+    }>;
 };

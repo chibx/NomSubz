@@ -1,5 +1,5 @@
 import { InferEnum } from "drizzle-orm";
-import { planTypeEnum } from "../db/schema";
+import { planStatusEnum, planTypeEnum, subscriptionsStatusEnum } from "../db/schema";
 
 export type NullT<T> = T | null;
 
@@ -43,6 +43,8 @@ export type JWTField = {
 };
 
 export type PlanType = InferEnum<typeof planTypeEnum>;
+export type PlanStatus = InferEnum<typeof planStatusEnum>;
+export type SubscriptionStatus = InferEnum<typeof subscriptionsStatusEnum>;
 
 export enum ParsedDbErrorType {
     UNIQUE_VIOLATION = 0,

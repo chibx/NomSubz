@@ -174,15 +174,15 @@ INTERNAL_API_KEY_SALT=
 
 ## Roadmap / Hackathon Scope
 
-- [ ] Core subscription CRUD + state machine
+- [x] Core subscription CRUD + state machine
 - [ ] Dunning loop worker
-- [ ] Proration engine
-- [ ] Nomba webhook handling
-- [ ] Invoice PDF generation
+- [x] Proration engine
+- [x] Nomba webhook handling
+- [x] Invoice PDF generation
 - [ ] Admin dashboard (stretch goal)
 
 ---
 
 ## License
 
-MIT — built for [Hackathon Name] 2026.
+MIT — built for **Team Flint** 2026.

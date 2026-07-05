@@ -41,6 +41,7 @@ type UpdateSubscriptionArg = {
 
 type extraMeta = {
     customerEmail: string;
+    cardId: string;
     cardToken: string;
     oldPlanId: string;
     oldAmount: string;
@@ -53,6 +54,7 @@ type extraAmountToPayArg = UpdateSubscriptionArg & {
     currentDate: Date;
     transactionId: string;
     cardToken: string;
+    cardId: string;
     customerEmail: string;
     oldPlanId: string;
     amountToPay?: string;
@@ -159,6 +161,7 @@ async function getCompoundSubscription(arg: UpdateSubscriptionArg) {
                 planAmount: plans.amount,
                 residualAmount: subscribers.residualAmount,
                 cardToken: subscriberCards.tokenizedCard,
+                cardId: subscriberCards.id,
                 type: plans.type,
                 customerEmail: applications.email,
             })
@@ -204,6 +207,7 @@ function runComplexUpdateTx({
                     currentDate: currentDate,
                     transactionId: transactionId,
                     cardToken: extraData!.cardToken,
+                    cardId: extraData!.cardId,
                     customerEmail: extraData!.customerEmail,
                     oldPlanId: extraData!.oldPlanId,
                     amountToPay: prorationResult.amountToPay,
@@ -218,7 +222,7 @@ function runComplexUpdateTx({
                         subscriberId: arg.subscriberId,
                         appId: arg.appId,
                         subscriptionId: arg.subscriptionId,
-                        cardToken: extraData!.cardToken,
+                        cardId: extraData!.cardId,
                         status: "pending",
                     }),
                 );
@@ -238,6 +242,7 @@ function runComplexUpdateTx({
                     tx.insert(applicationLogs).values({
                         appId: arg.appId,
                         event: ApplicationLogEvents.PLAN_CHANGE,
+                        subscriberId: arg.subscriberId,
                         metadata: {
                             appId: arg.appId,
                             oldPlanId: extraData!.oldPlanId,
@@ -327,6 +332,7 @@ export const updateSubscription = toGoErrorRet(async (arg: UpdateSubscriptionArg
 
         extraData = {
             cardToken: currentSubz.cardToken,
+            cardId: currentSubz.cardId,
             customerEmail: currentSubz.customerEmail,
             newAmount: newPlan[0].amount,
             newPlanId: newPlan[0].id.toString(),
@@ -421,6 +427,7 @@ export async function handleSuccessfulPlanChange(arg: handleSuccessfulPlanChange
         promises.push(
             tx.insert(applicationLogs).values({
                 appId: arg.appId,
+                subscriberId: arg.subscriberId,
                 event: ApplicationLogEvents.PLAN_CHANGE,
                 metadata: {
                     appId: arg.appId,
@@ -479,11 +486,12 @@ export async function handleSuccessfulSubscription(arg: handleSuccessfulSubscrip
                 transactionId: transactionId,
                 subscriptionId: res[0].subscriptionId,
                 amount: arg.planAmount,
-                cardToken: arg.cardToken,
+                cardId: arg.cardId,
                 createdAt: arg.currentDate,
             }),
             tx.insert(applicationLogs).values({
                 appId: arg.appId,
+                subscriberId: arg.subscriberId,
                 event: ApplicationLogEvents.PLAN_CHANGE,
                 metadata: {
                     newPlanAmount: arg.planAmount,

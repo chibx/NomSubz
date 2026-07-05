@@ -1,189 +1,165 @@
 import Link from "next/link";
-import { GradientHero } from "@/app/components/GradientHero";
-import { PhoneMockup } from "@/app/components/PhoneMockup";
+import { MorphBlob } from "@/app/components/MorphBlob";
+import { Grain } from "@/app/components/Grain";
+import { Reveal } from "@/app/components/Reveal";
+import { Magnetic } from "@/app/components/Magnetic";
 
 export default function MarketingPage() {
   return (
-    <div className="font-sans text-foreground" style={{ background: "#F7F3EF" }}>
+    <div className="font-sans" style={{ background: "#F5F5F7", color: "#0A0A0B" }}>
+      <Grain />
 
-      {/* ── HERO ── */}
-      <section className="relative flex min-h-screen flex-col overflow-hidden" style={{ background: "#07030A" }}>
-        <GradientHero />
-
-        {/* Nav */}
-        <header className="relative z-20 flex items-center justify-between px-12 py-6 lg:px-20">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand">
-              <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+      {/* ── NAV ── */}
+      <header className="fixed inset-x-0 top-0 z-50">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-8 py-6 lg:px-14">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-foreground">
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24">
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
-                  stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                  stroke="#F5F5F7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
-            <span className="text-[18px] font-black tracking-tight text-white">NomSubz</span>
+            <span className="text-[16px] font-black tracking-tight">NomSubz</span>
           </div>
-          <nav className="hidden items-center gap-1 md:flex">
-            <a href="#features" className="px-4 py-2 text-sm font-medium text-white/45 transition-colors hover:text-white/80">Features</a>
-            <a href="#how-it-works" className="px-4 py-2 text-sm font-medium text-white/45 transition-colors hover:text-white/80">How it works</a>
-            <div className="mx-4 h-4 w-px bg-white/10" />
-            <Link href="/login" className="px-4 py-2 text-sm font-medium text-white/60 transition-colors hover:text-white">Sign in</Link>
-            <Link href="/register"
-              className="ml-1 rounded-xl bg-brand px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-hover">
-              Get started →
+          <nav className="flex items-center gap-2">
+            <Link href="/login"
+              className="px-4 py-2 text-[14px] font-medium text-muted transition-colors hover:text-foreground">
+              Sign in
             </Link>
-          </nav>
-        </header>
-
-        {/* Hero content */}
-        <div className="relative z-20 mx-auto flex w-full max-w-7xl flex-1 flex-col items-center justify-center px-6 pb-20 pt-10 text-center lg:flex-row lg:gap-20 lg:px-20 lg:text-left">
-
-          {/* Left — copy */}
-          <div className="flex-1 max-w-[620px]">
-            <div className="animate-fade-up mb-8 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 backdrop-blur-sm"
-              style={{ animationDelay: "0.1s" }}>
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand-tint" />
-              <span className="text-[13px] font-medium tracking-wide text-white/70">Payments powered by Nomba</span>
-            </div>
-
-            <h1 className="animate-fade-up mb-6 text-[clamp(42px,7vw,88px)] font-black leading-[1.01] tracking-[-3px] text-white"
-              style={{ animationDelay: "0.2s" }}>
-              Recurring billing,<br />
-              <span style={{ color: "#c4899a" }}>built for Nigeria.</span>
-            </h1>
-
-            <p className="animate-fade-up mb-10 max-w-[460px] text-[clamp(16px,1.8vw,20px)] font-light leading-relaxed text-white/45"
-              style={{ animationDelay: "0.35s" }}>
-              Subscription plans, automated invoicing, and Nomba-powered card payments — managed from one clean dashboard.
-            </p>
-
-            <div className="animate-fade-up flex flex-wrap items-center gap-4 lg:justify-start justify-center"
-              style={{ animationDelay: "0.5s" }}>
+            <Magnetic>
               <Link href="/register"
-                className="rounded-2xl bg-white px-9 py-4 text-[15px] font-black tracking-tight text-foreground shadow-lg transition-transform hover:scale-[1.02]">
-                Start for free
+                className="block rounded-full bg-foreground px-6 py-2.5 text-[14px] font-bold text-white transition-transform hover:scale-[1.03]">
+                Get started
               </Link>
-              <Link href="/dashboard"
-                className="flex items-center gap-2 text-[15px] font-medium text-white/50 transition-colors hover:text-white/80">
-                View dashboard
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                  <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+            </Magnetic>
+          </nav>
+        </div>
+      </header>
+
+      {/* ── HERO ── */}
+      <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6">
+
+        {/* Blob — behind everything */}
+        <div className="animate-drift pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-[60%] opacity-80"
+          style={{ zIndex: 0 }}>
+          <MorphBlob size={680} />
+        </div>
+
+        {/* Type — clearly above the blob */}
+        <div className="relative text-center" style={{ zIndex: 10 }}>
+          <p className="animate-fade-up mb-6 text-[12px] font-bold uppercase tracking-[5px] text-muted"
+            style={{ animationDelay: "0.2s" }}>
+            Subscription infrastructure · Nigeria
+          </p>
+
+          <h1 className="animate-fade-up font-black leading-[0.95] tracking-[-0.045em]"
+            style={{ fontSize: "clamp(56px, 11vw, 150px)", animationDelay: "0.35s" }}>
+            Revenue,<br />
+            <span className="text-brand">in motion.</span>
+          </h1>
+
+          <p className="animate-fade-up mx-auto mt-8 max-w-[400px] text-[16px] leading-relaxed text-muted"
+            style={{ animationDelay: "0.55s" }}>
+            Recurring billing that runs itself — plans, cards, invoices, and Nomba payments in one engine.
+          </p>
+
+          <div className="animate-fade-up mt-10 flex items-center justify-center gap-5"
+            style={{ animationDelay: "0.7s" }}>
+            <Magnetic>
+              <Link href="/register"
+                className="block rounded-full bg-brand px-10 py-4 text-[15px] font-bold text-white shadow-lg transition-all hover:bg-brand-hover">
+                Start now →
               </Link>
-            </div>
-
-            <div className="animate-fade-up mt-10 flex flex-wrap items-center justify-center gap-3 lg:justify-start"
-              style={{ animationDelay: "0.65s" }}>
-              {[
-                { value: "99.9%", label: "billing uptime" },
-                { value: "₦2.4M", label: "processed monthly" },
-                { value: "1,284", label: "active subscribers" },
-              ].map((item) => (
-                <div key={item.label} className="flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-4 py-3 backdrop-blur-sm">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand/30 text-[12px] font-black text-white">
-                    {item.value}
-                  </div>
-                  <div className="text-left">
-                    <div className="text-[12px] font-semibold leading-none text-white">{item.value}</div>
-                    <div className="text-[11px] leading-none text-white/45">{item.label}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Right — phone mockup */}
-          <div className="mt-16 flex-shrink-0 lg:mt-0">
-            <PhoneMockup />
+            </Magnetic>
+            <Link href="/dashboard"
+              className="text-[14px] font-semibold text-muted underline-offset-4 transition-colors hover:text-foreground hover:underline">
+              See the dashboard
+            </Link>
           </div>
         </div>
 
-        {/* Fade to section below */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-40"
-          style={{ background: "linear-gradient(to bottom, transparent, #F7F3EF)" }} />
-      </section>
-
-      {/* ── FEATURES ── */}
-      <section id="features" className="px-6 py-28 lg:px-20">
-        <div className="mx-auto max-w-6xl">
-          <p className="mb-4 text-xs font-bold uppercase tracking-[3px] text-brand">Built right</p>
-          <h2 className="mb-16 max-w-[500px] text-[clamp(28px,4vw,52px)] font-black leading-[1.06] tracking-[-1.5px] text-foreground">
-            Everything a subscription business needs
-          </h2>
-          <div className="grid gap-5 md:grid-cols-3">
-            {[
-              { title: "Recurring Billing", body: "Set up once, collect forever. Subscriptions renew automatically on schedule — weekly, monthly, or annually." },
-              { title: "Plan Management", body: "Create flexible pricing plans and enable or disable them instantly. Price is locked once set, keeping things honest." },
-              { title: "Nomba Payments", body: "Card payments tokenized and charged through Nomba — built specifically for businesses operating in Nigeria." },
-            ].map((f) => (
-              <div key={f.title} className="rounded-3xl border border-border bg-surface p-8 transition-shadow hover:shadow-md">
-                <div className="mb-6 h-10 w-10 rounded-2xl bg-brand-soft flex items-center justify-center">
-                  <div className="h-2.5 w-2.5 rounded-full bg-brand" />
-                </div>
-                <h3 className="mb-3 text-[17px] font-bold tracking-tight text-foreground">{f.title}</h3>
-                <p className="text-[15px] leading-relaxed text-muted">{f.body}</p>
-              </div>
-            ))}
+        {/* Scroll hint */}
+        <div className="animate-fade-in absolute bottom-10 left-1/2 -translate-x-1/2"
+          style={{ animationDelay: "1.4s" }}>
+          <div className="flex h-9 w-6 items-start justify-center rounded-full border border-border p-1.5">
+            <div className="h-2 w-1 animate-bounce rounded-full bg-muted-foreground" />
           </div>
         </div>
       </section>
 
-      {/* ── HOW IT WORKS ── */}
-      <section id="how-it-works" className="border-t border-border px-6 py-28 lg:px-20">
+      {/* ── STATEMENT ── */}
+      <section className="px-6 py-40">
+        <div className="mx-auto max-w-4xl">
+          <Reveal>
+            <p className="font-black leading-[1.15] tracking-[-0.03em] text-foreground"
+              style={{ fontSize: "clamp(28px, 4.5vw, 56px)" }}>
+              You build the product.<br />
+              <span className="text-muted-foreground">NomSubz bills for it —</span><br />
+              weekly, monthly, annually.<br />
+              <span className="text-brand">Forever.</span>
+            </p>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ── CAPABILITIES ── */}
+      <section className="border-t border-border px-6 py-32" style={{ background: "#FFFFFF" }}>
         <div className="mx-auto max-w-5xl">
-          <p className="mb-4 text-center text-xs font-bold uppercase tracking-[3px] text-brand">Three steps</p>
-          <h2 className="mb-20 text-center text-[clamp(28px,4vw,52px)] font-black leading-[1.06] tracking-[-1.5px] text-foreground">
-            Up and running in minutes
-          </h2>
-          <div className="relative grid gap-12 md:grid-cols-3 md:gap-6 text-center">
-            <div className="absolute left-[20%] right-[20%] top-8 hidden h-px md:block"
-              style={{ background: "linear-gradient(to right, #e6ddd9, #c4899a, #e6ddd9)" }} />
-            {[
-              { n: "1", title: "Create your plans", body: "Define your subscription tiers — name, price, and billing interval." },
-              { n: "2", title: "Add your customers", body: "Bring your subscribers into NomSubz and attach their payment cards." },
-              { n: "3", title: "Let it run", body: "Subscriptions bill automatically. Pause, cancel, or upgrade any time." },
-            ].map((s) => (
-              <div key={s.n} className="relative">
-                <div className="relative z-10 mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full border border-border bg-surface shadow-sm">
-                  <span className="text-xl font-black text-brand">{s.n}</span>
-                </div>
-                <h3 className="mb-2.5 text-base font-bold tracking-tight text-foreground">{s.title}</h3>
-                <p className="text-[14px] leading-relaxed text-muted">{s.body}</p>
+          {[
+            { n: "01", title: "Plans", body: "Tiered pricing in NGN. Weekly, monthly, or annual intervals. Enable and disable in real time — price locked once set, by design." },
+            { n: "02", title: "Customers & cards", body: "Subscribers with Nomba-tokenized cards attached. Add, remove, set defaults. The raw card never touches your stack." },
+            { n: "03", title: "Subscriptions", body: "Pause, resume, cancel at period end. Upgrades and downgrades prorate automatically — charges and credits handled for you." },
+            { n: "04", title: "Webhooks & 2FA", body: "Billing events pushed to your systems the moment they happen. TOTP two-factor auth guarding the whole dashboard." },
+          ].map((item, i) => (
+            <Reveal key={item.n} delay={i * 90}>
+              <div className="group flex flex-col gap-4 border-b border-border py-12 md:flex-row md:items-baseline md:gap-16 last:border-0">
+                <span className="text-[13px] font-black tracking-widest text-brand">{item.n}</span>
+                <h3 className="min-w-[240px] text-[28px] font-black tracking-[-1px] transition-colors group-hover:text-brand">
+                  {item.title}
+                </h3>
+                <p className="max-w-[440px] text-[15px] leading-relaxed text-muted">{item.body}</p>
               </div>
-            ))}
-          </div>
+            </Reveal>
+          ))}
         </div>
       </section>
 
       {/* ── CTA ── */}
-      <section className="border-t border-border px-6 py-28 lg:px-20">
-        <div className="mx-auto max-w-3xl text-center">
-          <h2 className="mb-6 text-[clamp(32px,5vw,64px)] font-black leading-[1.04] tracking-[-2px] text-foreground">
-            Ready to get started?
-          </h2>
-          <p className="mb-10 text-lg text-muted">Join businesses already using NomSubz to run their subscriptions.</p>
-          <Link href="/register"
-            className="inline-block rounded-2xl bg-brand px-12 py-5 text-[16px] font-black text-white transition-all hover:bg-brand-hover hover:scale-[1.02]">
-            Create your account →
-          </Link>
+      <section className="relative overflow-hidden px-6 py-44">
+        <div className="pointer-events-none absolute -right-40 top-1/2 -translate-y-1/2 opacity-60">
+          <MorphBlob size={420} />
+        </div>
+        <div className="relative z-10 mx-auto max-w-3xl">
+          <Reveal>
+            <h2 className="font-black leading-[0.98] tracking-[-0.04em]"
+              style={{ fontSize: "clamp(44px, 8vw, 110px)" }}>
+              Set it.<br />Forget it.<br />
+              <span className="text-brand">Get paid.</span>
+            </h2>
+          </Reveal>
+          <Reveal delay={150}>
+            <div className="mt-12">
+              <Magnetic>
+                <Link href="/register"
+                  className="inline-block rounded-full bg-foreground px-12 py-5 text-[16px] font-black text-white transition-all hover:scale-[1.02]">
+                  Create your account
+                </Link>
+              </Magnetic>
+            </div>
+          </Reveal>
         </div>
       </section>
 
       {/* ── FOOTER ── */}
-      <footer className="border-t border-border px-6 py-10 lg:px-20">
-        <div className="mx-auto flex max-w-6xl items-center justify-between text-sm text-muted">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand">
-              <svg width="13" height="13" fill="none" viewBox="0 0 24 24">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
-                  stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </div>
-            <span className="font-bold text-foreground">NomSubz</span>
-            <span className="text-border">·</span>
+      <footer className="border-t border-border px-6 py-10">
+        <div className="mx-auto flex max-w-7xl items-center justify-between text-[13px] text-muted">
+          <div className="flex items-center gap-2">
+            <span className="font-black text-foreground">NomSubz</span>
             <span>© {new Date().getFullYear()}</span>
           </div>
-          <div className="flex gap-6">
-            <Link href="/login" className="hover:text-foreground transition-colors">Sign in</Link>
-            <Link href="/register" className="hover:text-foreground transition-colors">Get started</Link>
+          <div className="flex gap-8">
+            <Link href="/login" className="transition-colors hover:text-foreground">Sign in</Link>
+            <Link href="/register" className="transition-colors hover:text-foreground">Get started</Link>
           </div>
         </div>
       </footer>

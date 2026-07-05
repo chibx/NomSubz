@@ -17,13 +17,16 @@ export type ApplicationLogMeta = {
         currentDate: string;
         userRemaining?: string;
         amountToPay?: string;
+        transactionId: string;
     };
     [ApplicationLogEvents.PLAN_SUBSCRIPTION]: {
         appId: string;
+        newPlanAmount: string;
+        amountToPay: string;
         subscriptionId: string;
         planId: string;
-        amount: string;
         currentDate: string;
+        transactionId: string;
     };
 };
 
@@ -73,12 +76,14 @@ export type PlanUpgradeWebHook = {
     subscriberId: string;
     appId: string;
     operationDate: string;
+    transactionId: string;
 };
 
 export type PlanSubscriptionWebhook = {
     type: WebHookTypes.PLAN_SUBSCRIPTION;
     // usedExistingCard: "true" | "false";
-    amount: string;
+    planAmount: string;
+    amountToPay: string;
     planId: string;
     subscriberId: string;
     appId: string;

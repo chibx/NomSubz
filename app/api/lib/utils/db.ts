@@ -14,46 +14,7 @@ import { STATUS_BAD_REQUEST, STATUS_INTERNAL_SERVER_ERROR, STATUS_NOT_FOUND, sub
 import { ApplicationLogEvents, ApplicationLogMeta, PlanType, PlanUpgradeWebHook, WebHookTypes } from "../types/types";
 import { Decimal } from "decimal.js";
 import { CALLBACK_URL } from "@/app/shared/constants";
-
-// TODO: Adding a cache would suffice but the benefits in hackathon wouldn't be much
-export const isSubscriberForApp = toGoErrorRet(async (appId: string, subscriberId: bigint) => {
-    let result = false;
-    const b = await appDB
-        .select({
-            a: sql<number>`1`,
-        })
-        .from(subscribers)
-        .where(and(eq(subscribers.appId, appId), eq(subscribers.subscriberId, subscriberId)));
-
-    if (b.length > 0) {
-        result = true;
-    }
-    return result;
-});
-
-export const getSubscription = toGoErrorRet((appId: string, subscriberId: bigint, subscriptionId: string) => {
-    return appDB
-        .select({
-            id: subscriptions.id,
-            amount: subscriptions.amount,
-            createdAt: subscriptions.createdAt,
-            startTime: subscriptions.startTime,
-            endTime: subscriptions.endTime,
-            status: subscriptions.status,
-            planName: plans.name,
-            planType: plans.type,
-        })
-        .from(subscribers)
-        .innerJoin(subscriptions, eq(subscribers.subscriberId, subscriptions.subscriberId))
-        .innerJoin(plans, eq(plans.id, subscriptions.planId))
-        .where(
-            and(
-                eq(subscribers.appId, appId),
-                eq(subscriptions.subscriberId, subscriberId),
-                eq(subscriptions.id, subscriptionId),
-            ),
-        );
-});
+import { uuidv4 } from "uuidv7";
 
 type ProrateOption = {
     oldAmount: string;
@@ -90,6 +51,7 @@ type extraMeta = {
 type extraAmountToPayArg = UpdateSubscriptionArg & {
     amountX100: string;
     currentDate: Date;
+    transactionId: string;
     cardToken: string;
     customerEmail: string;
     oldPlanId: string;
@@ -104,10 +66,12 @@ type handleSuccessfulPlanChangeArg = ProrateResult & {
     appId: string;
     subscriberId: bigint;
     subscriptionId: string;
+    transactionId: string;
 };
 
 type handleSuccessfulSubscriptionArg = {
-    amount: string;
+    planAmount: string;
+    amountToPay: string;
     planId: bigint;
     subscriberId: bigint;
     appId: string;
@@ -166,6 +130,7 @@ async function handleExtraAmountToPay(arg: extraAmountToPayArg) {
                 type: WebHookTypes.PLAN_CHANGE_UPGRADE,
                 newPlanId: arg.planId!.toString(),
                 subscriptionId: arg.subscriptionId,
+                transactionId: arg.transactionId,
                 subscriberId: arg.subscriberId.toString(),
                 appId: arg.appId,
                 operationDate: arg.currentDate.toISOString(),
@@ -224,6 +189,7 @@ function runComplexUpdateTx({
     return appDB.transaction(async (tx) => {
         // So glad QueryPromise class doesn't execute instantly
         const promises: Promise<unknown>[] = [];
+        const transactionId = uuidv4();
 
         if (prorationResult) {
             if (prorationResult.amountToPay) {
@@ -236,6 +202,7 @@ function runComplexUpdateTx({
                     ...arg,
                     amountX100: amountIn100,
                     currentDate: currentDate,
+                    transactionId: transactionId,
                     cardToken: extraData!.cardToken,
                     customerEmail: extraData!.customerEmail,
                     oldPlanId: extraData!.oldPlanId,
@@ -245,6 +212,7 @@ function runComplexUpdateTx({
 
                 promises.push(
                     tx.insert(payments).values({
+                        transactionId: transactionId,
                         amount: prorationResult.amountToPay,
                         orderReference: paymentInfo.orderReference,
                         subscriberId: arg.subscriberId,
@@ -260,6 +228,13 @@ function runComplexUpdateTx({
             // this balance can be used in future payments, either in full or partially
             if (prorationResult.surplus) {
                 promises.push(
+                    tx
+                        .update(subscribers)
+                        .set({ residualAmount: prorationResult.surplus })
+                        .where(eq(subscribers.subscriberId, arg.subscriberId)),
+                );
+
+                promises.push(
                     tx.insert(applicationLogs).values({
                         appId: arg.appId,
                         event: ApplicationLogEvents.PLAN_CHANGE,
@@ -268,18 +243,12 @@ function runComplexUpdateTx({
                             oldPlanId: extraData!.oldPlanId,
                             newPlanId: extraData!.newPlanId,
                             subscriptionId: arg.subscriptionId,
+                            transactionId: transactionId,
                             amountToPay: prorationResult.amountToPay,
                             userRemaining: prorationResult.surplus,
                             currentDate: currentDate.toISOString(),
                         } satisfies ApplicationLogMeta[ApplicationLogEvents.PLAN_CHANGE],
                     }),
-                );
-
-                promises.push(
-                    tx
-                        .update(subscribers)
-                        .set({ residualAmount: prorationResult.surplus })
-                        .where(eq(subscribers.subscriberId, arg.subscriberId)),
                 );
             }
         }
@@ -386,6 +355,46 @@ export const updateSubscription = toGoErrorRet(async (arg: UpdateSubscriptionArg
     return;
 });
 
+// TODO: Adding a cache would suffice but the benefits in hackathon wouldn't be much
+export const isSubscriberForApp = toGoErrorRet(async (appId: string, subscriberId: bigint) => {
+    let result = false;
+    const b = await appDB
+        .select({
+            a: sql<number>`1`,
+        })
+        .from(subscribers)
+        .where(and(eq(subscribers.appId, appId), eq(subscribers.subscriberId, subscriberId)));
+
+    if (b.length > 0) {
+        result = true;
+    }
+    return result;
+});
+
+export const getSubscription = toGoErrorRet((appId: string, subscriberId: bigint, subscriptionId: string) => {
+    return appDB
+        .select({
+            id: subscriptions.id,
+            amount: subscriptions.amount,
+            createdAt: subscriptions.createdAt,
+            startTime: subscriptions.startTime,
+            endTime: subscriptions.endTime,
+            status: subscriptions.status,
+            planName: plans.name,
+            planType: plans.type,
+        })
+        .from(subscribers)
+        .innerJoin(subscriptions, eq(subscribers.subscriberId, subscriptions.subscriberId))
+        .innerJoin(plans, eq(plans.id, subscriptions.planId))
+        .where(
+            and(
+                eq(subscribers.appId, appId),
+                eq(subscriptions.subscriberId, subscriberId),
+                eq(subscriptions.id, subscriptionId),
+            ),
+        );
+});
+
 export async function handleSuccessfulPlanChange(arg: handleSuccessfulPlanChangeArg) {
     return appDB.transaction(async (tx) => {
         const promises: Promise<unknown>[] = [];
@@ -400,6 +409,16 @@ export async function handleSuccessfulPlanChange(arg: handleSuccessfulPlanChange
         );
 
         promises.push(
+            tx
+                .update(payments)
+                .set({
+                    status: "success",
+                    updatedAt: new Date(),
+                })
+                .where(eq(payments.transactionId, arg.transactionId)),
+        );
+
+        promises.push(
             tx.insert(applicationLogs).values({
                 appId: arg.appId,
                 event: ApplicationLogEvents.PLAN_CHANGE,
@@ -408,6 +427,7 @@ export async function handleSuccessfulPlanChange(arg: handleSuccessfulPlanChange
                     oldPlanId: arg.oldPlanId,
                     newPlanId: arg.newPlanId,
                     subscriptionId: arg.subscriptionId,
+                    transactionId: arg.transactionId,
                     amountToPay: arg.amountToPay,
                     userRemaining: arg.surplus,
                     currentDate: arg.currentDate.toISOString(),
@@ -440,7 +460,7 @@ export async function handleSuccessfulSubscription(arg: handleSuccessfulSubscrip
                 cardId: arg.cardId,
                 startTime: startTime,
                 endTime: endTime,
-                amount: arg.amount,
+                amount: arg.amountToPay,
                 createdAt: startTime,
             })
             .returning({ subscriptionId: subscriptions.id });
@@ -448,16 +468,42 @@ export async function handleSuccessfulSubscription(arg: handleSuccessfulSubscrip
             throw new FriendlyError(STATUS_INTERNAL_SERVER_ERROR, `Couldn't get inserted subscription ID`);
         }
 
-        tx.insert(applicationLogs).values({
-            appId: arg.appId,
-            event: ApplicationLogEvents.PLAN_CHANGE,
-            metadata: {
-                amount: arg.amount,
-                planId: arg.planId.toString(),
+        const transactionId = uuidv4();
+
+        await Promise.all([
+            tx.insert(payments).values({
                 appId: arg.appId,
-                currentDate: startTime.toISOString(),
+                orderReference: arg.reference,
+                status: "success",
+                subscriberId: arg.subscriberId,
+                transactionId: transactionId,
                 subscriptionId: res[0].subscriptionId,
-            } satisfies ApplicationLogMeta[ApplicationLogEvents.PLAN_SUBSCRIPTION],
-        });
+                amount: arg.planAmount,
+                cardToken: arg.cardToken,
+                createdAt: arg.currentDate,
+            }),
+            tx.insert(applicationLogs).values({
+                appId: arg.appId,
+                event: ApplicationLogEvents.PLAN_CHANGE,
+                metadata: {
+                    newPlanAmount: arg.planAmount,
+                    amountToPay: arg.amountToPay,
+                    planId: arg.planId.toString(),
+                    appId: arg.appId,
+                    currentDate: startTime.toISOString(),
+                    subscriptionId: res[0].subscriptionId,
+                    transactionId: transactionId,
+                } satisfies ApplicationLogMeta[ApplicationLogEvents.PLAN_SUBSCRIPTION],
+            }),
+        ]);
     });
 }
+
+export const updateCustomerResidual = toGoErrorRet((subscriberId: bigint, newResidual: string) => {
+    return appDB
+        .update(subscribers)
+        .set({
+            residualAmount: newResidual,
+        })
+        .where(eq(subscribers.subscriberId, subscriberId));
+});

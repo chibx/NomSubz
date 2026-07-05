@@ -21,12 +21,13 @@ import {
     toGoErrorRet,
     toValidationError,
 } from "@/app/api/lib/utils/utils";
-import { isSubscriberForApp } from "@/app/api/lib/utils/db";
+import { isSubscriberForApp, updateCustomerResidual } from "@/app/api/lib/utils/db";
 import { CreateSubscriptionSchema } from "@/app/api/lib/validation-schema/schema";
 import { and, eq, gt, desc, asc } from "drizzle-orm";
 import { NextRequest } from "next/server";
 import { uuidv4 } from "uuidv7";
 import * as v from "valibot";
+import Decimal from "decimal.js";
 
 async function getCardToken(appId: string, subscriberId: bigint, cardId: string): Promise<string | undefined> {
     return appDB
@@ -40,6 +41,25 @@ async function getCardToken(appId: string, subscriberId: bigint, cardId: string)
             ),
         )
         .then((rows) => rows[0]?.tokenizedCard);
+}
+
+function computeFunds(
+    planAmount: string,
+    residualAmount: string,
+): { amountToPay: string | undefined; newResidual: string } {
+    const planAmountDec = new Decimal(planAmount);
+    const residualDec = new Decimal(residualAmount);
+
+    if (planAmountDec.equals(residualDec)) {
+        // No payment needed, residual fully covers plan
+        return { amountToPay: undefined, newResidual: "0" };
+    } else if (planAmountDec.greaterThan(residualDec)) {
+        // Payment needed, residual is less than plan amount
+        return { amountToPay: planAmountDec.sub(residualDec).toString(), newResidual: "0" };
+    } else {
+        // Payment not needed, residual is greater than plan amount
+        return { amountToPay: undefined, newResidual: residualDec.sub(planAmountDec).toString() };
+    }
 }
 
 //  Create a new subscription (Requires a Plan ID and a Default Payment Method).
@@ -87,7 +107,7 @@ export async function POST(req: NextRequest, ctx: RouteContext<"/api/customers/[
 
     // TODO: Cache
     const getEmailProm = appDB
-        .select({ email: subscribers.email })
+        .select({ email: subscribers.email, residualAmount: subscribers.residualAmount })
         .from(subscribers)
         .where(eq(subscribers.subscriberId, subscriberId));
     const getPlanDetail = appDB
@@ -120,64 +140,93 @@ export async function POST(req: NextRequest, ctx: RouteContext<"/api/customers/[
     }
 
     const orderRef = `${uuidv4()}-${new Date().getTime()}`;
+    const { amountToPay, newResidual } = computeFunds(planDetail[0].amount, emailRet[0].residualAmount);
+
     const sharedMetadata = {
         type: WebHookTypes.PLAN_SUBSCRIPTION as const,
         planId: validatedBody.planId.toString(),
         subscriberId: subscriberId.toString(),
-        amount: planDetail[0].amount,
+        planAmount: planDetail[0].amount,
+        amountToPay,
         appId: appId,
         currentDate: dateToString(new Date()),
     };
 
     if (!cardDetails) {
-        const [orderReturn, error$4] = await toGoErrorRet(() => {
-            return nombaClient.createOrder({
-                order: {
-                    orderReference: orderRef,
-                    customerEmail: emailRet[0].email,
-                    callbackUrl: validatedBody.callbackUrl,
-                    amount: planDetail[0].amount,
-                    currency: planDetail[0].currency,
-                    allowedPaymentMethods: ["Card", "Intl Card"],
-                    orderMetaData: {
-                        ...sharedMetadata,
-                        usedExistingCard: "false",
-                    } satisfies PlanSubscriptionWebhook,
-                },
-                tokenizeCard: true,
-            });
-        })();
+        let checkoutLink: string | undefined;
+        if (amountToPay) {
+            const [orderReturn, error$4] = await toGoErrorRet(() => {
+                return nombaClient.createOrder({
+                    order: {
+                        orderReference: orderRef,
+                        customerEmail: emailRet[0].email,
+                        callbackUrl: validatedBody.callbackUrl,
+                        amount: planDetail[0].amount,
+                        currency: planDetail[0].currency,
+                        allowedPaymentMethods: ["Card", "Intl Card"],
+                        orderMetaData: {
+                            ...sharedMetadata,
+                            amountToPay,
+                            usedExistingCard: "false",
+                        } satisfies PlanSubscriptionWebhook,
+                    },
+                    tokenizeCard: true,
+                });
+            })();
 
-        if (error$4 !== null) {
+            if (error$4 !== null) {
+                return structuredResponse(STATUS_INTERNAL_SERVER_ERROR, DUMMY_500_MESSAGE);
+            }
+
+            checkoutLink = orderReturn.data.checkoutLink;
+        }
+
+        const [, error$5] = await toGoErrorRet(() => updateCustomerResidual(subscriberId, newResidual))();
+        if (error$5 !== null) {
+            logger.error("Failed to update customer residual", error$5);
             return structuredResponse(STATUS_INTERNAL_SERVER_ERROR, DUMMY_500_MESSAGE);
         }
 
-        return structuredResponse<CreateSubscriptionResponse>(STATUS_OK, "Success", {
-            checkoutLink: orderReturn.data.checkoutLink,
-        });
+        return structuredResponse<CreateSubscriptionResponse | null>(
+            STATUS_OK,
+            "Success",
+            checkoutLink
+                ? {
+                      checkoutLink,
+                  }
+                : null,
+        );
     } else {
-        const [, error$4] = await toGoErrorRet(() => {
-            return nombaClient.chargeTokenizedCard({
-                order: {
-                    amount: planDetail[0].amount,
-                    currency: planDetail[0].currency,
-                    customerEmail: emailRet[0].email,
-                    orderReference: orderRef,
-                    callbackUrl: validatedBody.callbackUrl,
-                    orderMetaData: {
-                        ...sharedMetadata,
-                        usedExistingCard: "true",
-                        cardId: cardDetails.id,
-                    } satisfies PlanSubscriptionWebhook,
-                },
-                tokenKey: cardDetails.token,
-            });
-        })();
+        if (amountToPay) {
+            const [, error$4] = await toGoErrorRet(() => {
+                return nombaClient.chargeTokenizedCard({
+                    order: {
+                        amount: planDetail[0].amount,
+                        currency: planDetail[0].currency,
+                        customerEmail: emailRet[0].email,
+                        orderReference: orderRef,
+                        callbackUrl: validatedBody.callbackUrl,
+                        orderMetaData: {
+                            ...sharedMetadata,
+                            amountToPay,
+                            usedExistingCard: "true",
+                            cardId: cardDetails.id,
+                        } satisfies PlanSubscriptionWebhook,
+                    },
+                    tokenKey: cardDetails.token,
+                });
+            })();
 
-        if (error$4 !== null) {
-            return structuredResponse(STATUS_INTERNAL_SERVER_ERROR, DUMMY_500_MESSAGE);
+            if (error$4 !== null) {
+                return structuredResponse(STATUS_INTERNAL_SERVER_ERROR, DUMMY_500_MESSAGE);
+            }
         }
 
+        const [, error$5] = await toGoErrorRet(() => updateCustomerResidual(subscriberId, newResidual))();
+        if (error$5 !== null) {
+            logger.error("Failed to update customer residual", error$5);
+            return structuredResponse(STATUS_INTERNAL_SERVER_ERROR, DUMMY_500_MESSAGE);
+        }
         return structuredResponse(STATUS_OK, "Success");
     }
 }

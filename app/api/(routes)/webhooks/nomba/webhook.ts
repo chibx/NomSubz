@@ -21,6 +21,7 @@ export async function doPlanUpgradeWebHook(order: WebhookOrder, extraData: PlanU
             oldPlanId: extraData.oldPlanId,
             amountToPay: extraData.amountToPay,
             surplus: extraData.userRemaining,
+            transactionId: extraData.transactionId,
         }),
     )();
     if (err$2 !== null) {
@@ -72,8 +73,9 @@ export async function doPlanSubscriptionWebHook(
 
     const [, err$4] = await toGoErrorRet(() =>
         handleSuccessfulSubscription({
-            amount: extraData.amount,
+            planAmount: extraData.planAmount,
             planId: BigInt(extraData.planId),
+            amountToPay: extraData.amountToPay,
             subscriberId: BigInt(extraData.subscriberId),
             appId: extraData.appId,
             currentDate: new Date(extraData.currentDate),

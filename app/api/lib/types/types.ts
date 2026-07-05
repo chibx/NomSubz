@@ -101,3 +101,7 @@ export type PlanSubscriptionWebhook = {
 );
 
 export type WebHookVariants = PlanUpgradeWebHook | PlanSubscriptionWebhook;
+
+export type ProcessPaymentJobData = {
+    subscriptionId: string;
+};

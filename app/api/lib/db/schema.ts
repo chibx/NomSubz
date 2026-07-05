@@ -60,6 +60,7 @@ export const applications = pgTable(
 export const appApiKeys = pgTable(
     "app_api_keys",
     {
+        name: text("name").notNull(),
         secret: text("secret").notNull(),
         prefix: text("prefix").notNull(),
         appId: uuid("app_id").notNull(),

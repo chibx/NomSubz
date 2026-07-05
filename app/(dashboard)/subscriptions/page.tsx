@@ -79,10 +79,10 @@ export default function SubscriptionsPage() {
           <button key={f.value} onClick={() => setFilter(f.value)}
             className="rounded-full px-4 py-1.5 text-sm font-medium transition-colors"
             style={{
-              background: filter === f.value ? "#753041" : "#ffffff",
+              background: filter === f.value ? "#0A0A0A" : "#ffffff",
               color: filter === f.value ? "#ffffff" : "#6E6E73",
               border: "1px solid",
-              borderColor: filter === f.value ? "#753041" : "#D8D8DC",
+              borderColor: filter === f.value ? "#0A0A0A" : "#D8D8DC",
             }}>
             {f.label}
           </button>

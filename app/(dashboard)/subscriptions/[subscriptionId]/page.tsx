@@ -134,9 +134,9 @@ export default function SubscriptionDetailPage() {
           <Row label="Current period ends" value={new Date(subscription.endTime).toLocaleDateString()} />
         </dl>
 
-        {subscription.status === "cancelled" ? (
-          <p className="mt-4 text-sm text-muted">
-            Active until {new Date(subscription.endTime).toLocaleDateString()}.
+        {subscription.cancelAtEnd ? (
+          <p className="mt-4 rounded-lg bg-status-pending-bg px-4 py-2.5 text-sm text-status-pending-fg">
+            Cancellation scheduled — access continues until {new Date(subscription.endTime).toLocaleDateString()}.
           </p>
         ) : null}
 

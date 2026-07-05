@@ -43,7 +43,7 @@ export default function CustomerDetailPage() {
       if (!mounted) return;
       setCustomer(customerRes.data);
       setCards(cardsRes.data?.cards ?? []);
-      setSubscriptions(subsRes.data ?? []);
+      setSubscriptions(subsRes.data?.subscriptions ?? []);
       setInvoices(invoicesRes.data ?? []);
       setLoading(false);
     });

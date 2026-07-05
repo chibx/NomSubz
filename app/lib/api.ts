@@ -51,8 +51,20 @@ export type Subscription = {
   startTime: string;
   endTime: string;
   status: SubscriptionStatus;
+  cancelAtEnd: boolean;
+  planId: string;
   planName: string;
   planType: PlanType;
+};
+
+export type ListSubscriptionsResponse = {
+  subscriptions: Subscription[];
+  nextPage: number | null;
+  cursor: string | null;
+};
+
+export type CreateSubscriptionResponse = {
+  checkoutLink?: string;
 };
 
 export type Analytics = {
@@ -204,13 +216,25 @@ export function updatePlan(planId: string, body: Partial<Pick<Plan, "name" | "st
 
 // ---- Subscriptions ----
 
-export function listSubscriptions(customerId: string) {
-  return jsonRequest<Subscription[]>(`/customers/${customerId}/subscriptions`);
+// Subscriptions list supports cursor-based pagination and server-side status filtering.
+// Pass status to filter server-side instead of client-side.
+export function listSubscriptions(
+  customerId: string,
+  params: { status?: SubscriptionStatus; cursor?: string; count?: number; order?: "asc" | "desc" } = {},
+) {
+  const qs = new URLSearchParams();
+  if (params.status) qs.set("status", params.status);
+  if (params.cursor) qs.set("cursor", params.cursor);
+  if (params.count) qs.set("count", String(params.count));
+  if (params.order) qs.set("order", params.order);
+  const query = qs.toString() ? `?${qs.toString()}` : "";
+  return jsonRequest<ListSubscriptionsResponse>(`/customers/${customerId}/subscriptions${query}`);
 }
 
-// POST /customers/[id]/subscriptions — requires planId, optional cardId, required callbackUrl
+// POST — returns checkoutLink if no card on file (redirect customer to Nomba checkout).
+// Returns empty data if charging existing card directly.
 export function createSubscription(customerId: string, body: { planId: string; cardId?: string; callbackUrl: string }) {
-  return jsonRequest<{ subscriptionId: string }>(`/customers/${customerId}/subscriptions`, { method: "POST", body });
+  return jsonRequest<CreateSubscriptionResponse>(`/customers/${customerId}/subscriptions`, { method: "POST", body });
 }
 
 export function getSubscription(customerId: string, subscriptionId: string) {

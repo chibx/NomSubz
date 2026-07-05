@@ -556,36 +556,34 @@ export default function MarketingPage() {
             Subscriptions move through well defined states. You control every transition.
           </p>
 
-          <div className="mt-12 flex flex-wrap items-center justify-center gap-2">
-            {LIFECYCLE.map((item, i) => (
-              <div key={item.state} className="flex items-center gap-2">
-                <div className="flex flex-col items-center gap-1.5">
-                  <span className={`rounded-full px-3.5 py-1 text-[12.5px] font-semibold ${item.color}`}>
+          {/* Pipeline: single horizontal track with a connecting line behind the badges */}
+          <div className="relative mx-auto mt-12 max-w-xl">
+            {/* Connecting line */}
+            <div className="absolute left-[10%] right-[10%] top-[18px] h-px bg-border" aria-hidden />
+            <div className="relative grid grid-cols-4 text-center">
+              {LIFECYCLE.map((item) => (
+                <div key={item.state} className="flex flex-col items-center">
+                  <span className={`relative z-10 rounded-full border border-border-subtle px-3 py-1 text-[11.5px] font-semibold ${item.color}`}>
                     {item.state}
                   </span>
-                  <span className="text-[11px] text-muted">{item.desc}</span>
+                  <span className="mt-2 text-[10.5px] leading-tight text-muted">{item.desc}</span>
                 </div>
-                {i < LIFECYCLE.length - 1 && (
-                  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" className="mb-4 text-muted-foreground">
-                    <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                )}
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
 
-          <div className="mt-10 grid gap-3 sm:grid-cols-3">
+          <div className="mt-10 grid gap-3 grid-cols-1 sm:grid-cols-3">
             {[
               { icon: <IconRecurring />, action: "Pause", desc: "Suspend billing while keeping the subscription alive. Resume any time." },
               { icon: <IconChart />, action: "Change plan", desc: "Upgrade or downgrade within the same billing interval. Proration applied automatically." },
               { icon: <IconInvoice />, action: "Cancel at period end", desc: "Subscriber keeps access until the current period expires. No mid period refunds needed." },
             ].map((item) => (
-              <div key={item.action} className="rounded-2xl border border-border bg-surface p-6">
-                <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-surface-raised text-foreground">
+              <div key={item.action} className="rounded-2xl border border-border bg-surface p-5">
+                <div className="mb-3 flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-surface-raised text-foreground">
                   {item.icon}
                 </div>
-                <p className="text-[14.5px] font-semibold">{item.action}</p>
-                <p className="mt-1.5 text-[13.5px] leading-relaxed text-muted">{item.desc}</p>
+                <p className="text-[14px] font-semibold">{item.action}</p>
+                <p className="mt-1 text-[13px] leading-relaxed text-muted">{item.desc}</p>
               </div>
             ))}
           </div>

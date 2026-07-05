@@ -8,7 +8,7 @@ NomSubz wraps Nomba's Checkout, Tokenised Cards, Charge API, and Transfers into 
 
 ## Features
 
-- 🔁 **Subscription state machine** — `incomplete → active → past_due → paused/canceled`
+- 🔁 **Subscription state machine** — `active → past_due → paused/cancelled`
 - 💳 **Tokenized card billing** via Nomba's Charge API
 - 📉 **Dunning loop** — automatic retries and email notifications on failed payments (Day 1 / Day 3 / Day 7)
 - ⏸️ **Delayed pause** — users keep access until the end of their paid period

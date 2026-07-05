@@ -256,7 +256,7 @@ export function getSubscription(customerId: string, subscriptionId: string) {
 
 export function changeSubscriptionPlan(customerId: string, subscriptionId: string, planId: string) {
     return jsonRequest<Subscription>(`/customers/${customerId}/subscriptions/${subscriptionId}`, {
-        method: "PATCH",
+        method: "PUT",
         body: { planId },
     });
 }

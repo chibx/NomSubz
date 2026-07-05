@@ -105,6 +105,7 @@ input, select, textarea, button { font-family: inherit; }
   border-color: #d4d4d8;
   box-shadow: 0 12px 32px -16px rgba(10, 10, 10, 0.18);
 }
+.card-lift:not(:hover) { transform: translateY(0); }
 
 /* frosted top nav */
 .nav-blur {
@@ -156,3 +157,20 @@ input, select, textarea, button { font-family: inherit; }
   .animate-fade-up, .animate-fade-in, .animate-rise-in { animation: none; }
   .card-lift, .btn-primary, .btn-quiet, .link-sweep::after, .reveal { transition: none; }
 }
+
+/* ── perf ── */
+.animate-fade-up, .animate-fade-in, .animate-rise-in {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+/* Remove will-change after animation completes to free GPU layers */
+@keyframes clear-wc { to { will-change: auto; } }
+.animate-fade-up, .animate-fade-in { animation: fade-up 0.65s cubic-bezier(0.22,1,0.36,1) both, clear-wc 0s 1s forwards; }
+.animate-rise-in { animation: rise-in 1s cubic-bezier(0.22,1,0.36,1) both, clear-wc 0s 1.5s forwards; }
+
+/* Force composited layers only during transition */
+.card-lift { backface-visibility: hidden; }
+.btn-primary, .btn-quiet { backface-visibility: hidden; }
+
+/* Smooth scroll without jank */
+html { scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }

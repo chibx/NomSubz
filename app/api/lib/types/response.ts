@@ -153,3 +153,7 @@ export type GetInvoiceResponse = {
     planAmount: string;
     currency: string;
 };
+
+export type GetWebhookUrlResponse = {
+    webhookUrl: string | null;
+};

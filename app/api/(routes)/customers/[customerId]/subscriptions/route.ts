@@ -1,11 +1,13 @@
 import { getAppId } from "@/app/api/lib/auth";
 import { appDB } from "@/app/api/lib/db/db";
-import { plans, subscriberCards, subscribers } from "@/app/api/lib/db/schema";
-import { CreateSubscriptionResponse } from "@/app/api/lib/types/response";
+import { plans, subscriberCards, subscribers, subscriptions } from "@/app/api/lib/db/schema";
+import { CreateSubscriptionResponse, ListSubscriptionsResponse } from "@/app/api/lib/types/response";
 import { PlanSubscriptionWebhook, WebHookTypes } from "@/app/api/lib/types/types";
 import {
+    DUMMY_401_MESSAGE,
     DUMMY_500_MESSAGE,
     STATUS_BAD_REQUEST,
+    STATUS_FORBIDDEN,
     STATUS_INTERNAL_SERVER_ERROR,
     STATUS_NOT_FOUND,
     STATUS_OK,
@@ -13,13 +15,15 @@ import {
 } from "@/app/api/lib/utils/constants";
 import {
     dateToString,
+    logger,
     nombaClient,
     structuredResponse,
     toGoErrorRet,
     toValidationError,
 } from "@/app/api/lib/utils/utils";
+import { isSubscriberForApp } from "@/app/api/lib/utils/db";
 import { CreateSubscriptionSchema } from "@/app/api/lib/validation-schema/schema";
-import { and, eq } from "drizzle-orm";
+import { and, eq, gt, desc, asc } from "drizzle-orm";
 import { NextRequest } from "next/server";
 import { uuidv4 } from "uuidv7";
 import * as v from "valibot";
@@ -179,4 +183,115 @@ export async function POST(req: NextRequest, ctx: RouteContext<"/api/customers/[
 }
 
 //  List subscriptions (with query params like https://<url>?status=active )
-export async function GET(req: NextRequest) {}
+export async function GET(req: NextRequest, ctx: RouteContext<"/api/customers/[customerId]/subscriptions">) {
+    const { customerId } = await ctx.params;
+    const appId = getAppId(req);
+    if (appId === null) {
+        return structuredResponse(STATUS_UNAUTHORIZED, DUMMY_401_MESSAGE);
+    }
+
+    const [subscriberId, error$1] = await toGoErrorRet(() => BigInt(customerId))();
+    if (error$1 !== null) {
+        return structuredResponse(STATUS_BAD_REQUEST, `Expected to see a valid customer id, got ${customerId}`);
+    }
+
+    const [isAuthorized, error$2] = await isSubscriberForApp(appId, subscriberId);
+
+    if (error$2 !== null) {
+        logger.withTag(req.url).error("Could not verify app to subscriber privilege from db:", error$2);
+        return structuredResponse(STATUS_INTERNAL_SERVER_ERROR, DUMMY_500_MESSAGE);
+    }
+
+    if (isAuthorized === false) {
+        return structuredResponse(STATUS_FORBIDDEN, "No rights to access this subscriber's data");
+    }
+
+    const { searchParams } = new URL(req.url);
+    const pageParam = searchParams.get("page");
+    const countParam = searchParams.get("count");
+    const cursor = searchParams.get("cursor");
+    const statusFilter = searchParams.get("status");
+    const order = searchParams.get("order") || "desc";
+
+    const page = pageParam ? parseInt(pageParam, 10) || 1 : 1;
+    const count = countParam ? Math.min(parseInt(countParam, 10) || 10, 30) : 10; // Max 30 per page
+
+    const conditions = [eq(subscriptions.subscriberId, subscriberId)];
+
+    if (statusFilter) {
+        switch (statusFilter) {
+            case "pending":
+                conditions.push(eq(subscriptions.status, "pending"));
+                break;
+            case "active":
+                conditions.push(eq(subscriptions.status, "active"));
+                break;
+            case "cancelled":
+                conditions.push(eq(subscriptions.status, "cancelled"));
+                break;
+            case "paused":
+                conditions.push(eq(subscriptions.status, "paused"));
+                break;
+        }
+    }
+
+    if (cursor) {
+        conditions.push(gt(subscriptions.id, cursor));
+    }
+
+    const [result, error$3] = await toGoErrorRet(
+        () =>
+            appDB
+                .select({
+                    id: subscriptions.id,
+                    amount: subscriptions.amount,
+                    status: subscriptions.status,
+                    startTime: subscriptions.startTime,
+                    endTime: subscriptions.endTime,
+                    createdAt: subscriptions.createdAt,
+                    cancelAtEnd: subscriptions.cancelAtEnd,
+                    planId: subscriptions.planId,
+                    planName: plans.name,
+                    planType: plans.type,
+                })
+                .from(subscriptions)
+                .innerJoin(plans, eq(plans.id, subscriptions.planId))
+                .where(and(...conditions))
+                .orderBy(order === "asc" ? asc(subscriptions.createdAt) : desc(subscriptions.createdAt))
+                .limit(count + 1), // Fetch one extra to determine if there's a next page
+    )();
+
+    if (error$3 !== null) {
+        logger.withTag(req.url).error("Could not list subscriptions:", error$3);
+        return structuredResponse(STATUS_INTERNAL_SERVER_ERROR, DUMMY_500_MESSAGE);
+    }
+
+    const hasNextPage = result.length > count;
+    // Remove the last item if there's a next page (without cloning the arr in memory)
+    if (hasNextPage) {
+        result.splice(result.length - 1, 1);
+    }
+    const subscriptionsList = result;
+
+    const lastCursor = subscriptionsList.length > 0 ? subscriptionsList[subscriptionsList.length - 1].id : null;
+    const nextPage = hasNextPage ? page + 1 : null;
+
+    const formattedList = subscriptionsList.map((sub) => ({
+        id: sub.id,
+        amount: sub.amount,
+        status: sub.status,
+        startTime: dateToString(sub.startTime),
+        endTime: dateToString(sub.endTime),
+        createdAt: dateToString(sub.createdAt),
+        cancelAtEnd: sub.cancelAtEnd || false,
+        planId: sub.planId.toString(),
+        planName: sub.planName,
+        planType: sub.planType,
+    }));
+
+    return structuredResponse<ListSubscriptionsResponse>(STATUS_OK, "Success", {
+        subscriptions: formattedList,
+        nextPage,
+        cursor: lastCursor,
+    });
+}

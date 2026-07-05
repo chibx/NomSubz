@@ -6,9 +6,10 @@
 - Add support for receiving webhooks
 - Add support for creating subscriptions
 - Add Remaining MFA Implementation
+- Add feature to manage subscriptions status (pause, resume, cancel)
+- List subscriptions [/api/customers/[customerId]/subscriptions]
 
 
 -------------------------------------------------------
 
-_ List subscriptions [/api/customers/[customerId]/subscriptions]
 _ Remaining OTP Implementation

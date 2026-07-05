@@ -15,6 +15,7 @@ import { ApplicationLogEvents, ApplicationLogMeta, PlanType, PlanUpgradeWebHook,
 import { Decimal } from "decimal.js";
 import { CALLBACK_URL } from "@/app/shared/constants";
 
+// TODO: Adding a cache would suffice but the benefits in hackathon wouldn't be much
 export const isSubscriberForApp = toGoErrorRet(async (appId: string, subscriberId: bigint) => {
     let result = false;
     const b = await appDB

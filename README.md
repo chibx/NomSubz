@@ -164,10 +164,16 @@ npm run dev
 ### Environment Variables
 
 ```
-DATABASE_URL=
-NOMBA_API_KEY=
-NOMBA_WEBHOOK_SECRET=
-INTERNAL_API_KEY_SALT=
+DATABASE_URL=""
+SECRET_KEY=""
+DEBUG="0" # or '1'
+
+NOMBA_ACCOUNT_ID=""
+NOMBA_CLIENT_ID=""
+NOMBA_SECRET=""
+NOMBA_WH_SECRET=""
+
+MIG_DATABASE_URL="" # Special migration url
 ```
 
 ---

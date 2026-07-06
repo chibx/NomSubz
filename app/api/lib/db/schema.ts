@@ -60,6 +60,10 @@ export const applications = pgTable(
 export const appApiKeys = pgTable(
     "app_api_keys",
     {
+        id: uuid("id")
+            .primaryKey()
+            .$defaultFn(() => uuidv7()),
+        name: text("name").notNull(),
         secret: text("secret").notNull(),
         prefix: text("prefix").notNull(),
         appId: uuid("app_id").notNull(),
@@ -282,7 +286,7 @@ export const payments = pgTable(
         appId: uuid("app_id").notNull(),
         subscriberId: bigint("subscriber_id", { mode: "bigint" }).notNull(),
         subscriptionId: uuid("subscription_id").notNull(),
-        cardId: text("card_id"),
+        cardId: uuid("card_id"),
         orderReference: text("order_reference").notNull(),
         amount: decimal("amount", {
             mode: "string",

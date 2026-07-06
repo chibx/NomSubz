@@ -270,7 +270,7 @@ export async function GET(req: NextRequest, ctx: RouteContext<"/api/customers/[c
     if (statusFilter) {
         switch (statusFilter) {
             case "pending":
-                conditions.push(eq(subscriptions.status, "pending"));
+                conditions.push(eq(subscriptions.status, "past_due"));
                 break;
             case "active":
                 conditions.push(eq(subscriptions.status, "active"));

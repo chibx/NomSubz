@@ -98,3 +98,7 @@ export const LoginWith2FASchema = v.pipe(
         token: v.pipe(v.string(), v.digits("Token must be a 6-digit number")),
     }),
 );
+
+export const CreateApiKeySchema = v.object({
+    name: v.string(),
+});

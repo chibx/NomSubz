@@ -2,6 +2,7 @@ import { InferInput } from "valibot";
 import {
     AddCardDetailsSchema,
     AddWebhookUrlSchema,
+    CreateApiKeySchema,
     CreateSubscriberSchema,
     CreateSubscriptionPlanSchema,
     CreateSubscriptionSchema,
@@ -9,6 +10,7 @@ import {
     LoginWith2FASchema,
     RegisterSchema,
     TwoFAVerifySchema,
+    UpdateSubscriptionDetailSchema,
 } from "@/app/api/lib/validation-schema/schema";
 
 /** POST /api/auth/register */
@@ -19,6 +21,9 @@ export type LoginRequest = InferInput<typeof LoginSchema>;
 
 /** POST /api/customers */
 export type CreateSubscriberRequest = InferInput<typeof CreateSubscriberSchema>;
+
+/** PUT /api/customers/[customerId]/subscriptions/[subscriptionId] */
+export type UpdateSubscriptionDetailRequest = InferInput<typeof UpdateSubscriptionDetailSchema>;
 
 /** GET /api/customers/[id] */
 export type GetSubscriberRequest = null;
@@ -41,6 +46,9 @@ export type TwoFAVerifyRequest = InferInput<typeof TwoFAVerifySchema>;
 /** POST /api/auth/login/2fa */
 export type LoginWith2FARequest = InferInput<typeof LoginWith2FASchema>;
 
+/** POST /api/auth/api-key */
+export type CreateApiKeyRequest = InferInput<typeof CreateApiKeySchema>;
+
 /** GET /api/customers/[customerId]/subscriptions
  * Query Params are:
  * - page?: number;
@@ -50,3 +58,5 @@ export type LoginWith2FARequest = InferInput<typeof LoginWith2FASchema>;
  * - status?: "pending" | "active" | "cancelled" | "paused";
  */
 export type ListSubscriptionsRequest = object; // Leaving this here for indication
+
+// export type

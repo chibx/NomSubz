@@ -1,31 +1,57 @@
-import { and, eq, inArray, lte, sql } from "drizzle-orm";
+import { and, eq, exists, inArray, lte, sql } from "drizzle-orm";
 import { appDB } from "../db/db";
 import { fromDrizzle, Job } from "pg-boss";
-import { subscriptions } from "../db/schema";
+import { activeRenewals, subscriptions } from "../db/schema";
 import { DunningJobData, ProcessPaymentJobData } from "../types/types";
 import { addWithSubscriptionDuration, logger, nombaClient, pgBoss } from "../utils/utils";
-import { QUEUES } from "./constants";
+import { QUEUES, DUNNING_PERIOD, MAX_DB_LIMIT } from "./constants";
 import { CALLBACK_URL } from "@/app/shared/constants";
-import { attemptCharge, dunningPeriod, getSubscriptionDetails } from "./utils";
+import { attemptCharge, getSubscriptionDetails } from "./utils";
 import { NombaRateLimitError } from "../nomba-client/types";
 
 export async function ScheduleRenewalsWork() {
     const dueSubscriptions = await appDB
-        .select({ id: subscriptions.id, endTime: subscriptions.endTime })
+        .select({ id: subscriptions.id, appId: subscriptions.appId, endTime: subscriptions.endTime })
         .from(subscriptions)
         .where(
             and(
+                exists(
+                    appDB
+                        .select({ a: sql`1` })
+                        .from(activeRenewals)
+                        .where(
+                            and(
+                                eq(activeRenewals.appId, subscriptions.appId),
+                                eq(activeRenewals.subscriptionId, subscriptions.id),
+                            ),
+                        ),
+                ),
                 eq(subscriptions.status, "active"),
                 lte(subscriptions.endTime, new Date()),
                 eq(subscriptions.cancelAtEnd, false),
             ),
-        );
+        )
+        .limit(MAX_DB_LIMIT);
 
     for (const sub of dueSubscriptions) {
-        await pgBoss.send(QUEUES.PROCESS_PAYMENT, {
-            subscriptionId: sub.id,
-            endTime: sub.endTime.toISOString(),
-        } satisfies ProcessPaymentJobData);
+        await appDB.transaction(async (tx) => {
+            await Promise.all([
+                tx.insert(activeRenewals).values({
+                    subscriptionId: sub.id,
+                    appId: sub.appId,
+                    createdAt: new Date(),
+                }),
+                pgBoss.send(
+                    QUEUES.PROCESS_PAYMENT,
+                    {
+                        appId: sub.appId,
+                        subscriptionId: sub.id,
+                        endTime: sub.endTime.toISOString(),
+                    } satisfies ProcessPaymentJobData,
+                    { db: fromDrizzle(tx, sql) },
+                ),
+            ]);
+        });
     }
 }
 
@@ -40,7 +66,7 @@ export async function CancelSubscriptionWork([]: Job<unknown>[]) {
                 eq(subscriptions.cancelAtEnd, true),
             ),
         )
-        .limit(100);
+        .limit(MAX_DB_LIMIT);
 
     const promises: Promise<unknown>[] = [];
     for (const sub of subsToCancel) {
@@ -57,10 +83,10 @@ export async function CancelSubscriptionWork([]: Job<unknown>[]) {
 }
 
 export async function ProcessPaymentWork([job]: Job<ProcessPaymentJobData>[]) {
-    const { subscriptionId, endTime } = job.data;
+    const { appId, subscriptionId, endTime } = job.data;
 
     // Fetch full sub details & user's default tokenized card via Drizzle
-    const [sub, error$1] = await getSubscriptionDetails(subscriptionId);
+    const [sub, error$1] = await getSubscriptionDetails(appId, subscriptionId);
     if (error$1 !== null) {
         logger.error("[PGBoss]: Failed to get subscription with card", error$1);
         return;
@@ -104,12 +130,13 @@ export async function ProcessPaymentWork([job]: Job<ProcessPaymentJobData>[]) {
                 pgBoss.send(
                     QUEUES.DUNNING_RETRY,
                     {
+                        appId,
                         subscriptionId,
                         attempt: 1,
                         initialEndTime: endTime,
                     } as DunningJobData,
                     {
-                        startAfter: dunningPeriod, // pg-boss will hide this job for 3 days!
+                        startAfter: DUNNING_PERIOD, // pg-boss will hide this job for 3 days!
                         db: fromDrizzle(tx, sql),
                         retryLimit: 5,
                     },
@@ -120,9 +147,9 @@ export async function ProcessPaymentWork([job]: Job<ProcessPaymentJobData>[]) {
 }
 
 export async function DunningRetryWork([job]: Job<DunningJobData>[]) {
-    const { subscriptionId, attempt, initialEndTime } = job.data;
+    const { appId, subscriptionId, attempt, initialEndTime } = job.data;
 
-    const [, error$1] = await attemptCharge(subscriptionId);
+    const [, error$1] = await attemptCharge(appId, subscriptionId);
 
     if (error$1 === null) {
         await appDB.update(subscriptions).set({ status: "active" }).where(eq(subscriptions.id, subscriptionId));
@@ -130,7 +157,7 @@ export async function DunningRetryWork([job]: Job<DunningJobData>[]) {
         if (attempt === 1) {
             await pgBoss.send(
                 QUEUES.DUNNING_RETRY,
-                { subscriptionId, attempt: 2, initialEndTime },
+                { appId, subscriptionId, attempt: 2, initialEndTime },
                 { startAfter: 5 * 24 * 60 * 60, retryLimit: 5 },
             );
         } else {

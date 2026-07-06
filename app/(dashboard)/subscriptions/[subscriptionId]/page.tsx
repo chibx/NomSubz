@@ -86,7 +86,7 @@ export default function SubscriptionDetailPage() {
     setActionMessage(
       res.status === 200
         ? "Plan changed. Any proration has been applied as a charge or credit."
-        : res.message || "Couldn't change plan — note the backend rejects switching between different billing intervals.",
+        : res.message || "Couldn't change plan. Note the backend rejects switching between different billing intervals.",
     );
     setShowChangePlan(false);
     refresh();
@@ -95,7 +95,7 @@ export default function SubscriptionDetailPage() {
   if (!customerId) {
     return (
       <p className="text-sm text-status-failed-fg">
-        Missing customer context — open this page from a customer&apos;s subscription list.
+        Missing customer context. Open this page from a customer&apos;s subscription list.
       </p>
     );
   }
@@ -136,7 +136,7 @@ export default function SubscriptionDetailPage() {
 
         {subscription.cancelAtEnd ? (
           <p className="mt-4 rounded-lg bg-status-pending-bg px-4 py-2.5 text-sm text-status-pending-fg">
-            Cancellation scheduled — access continues until {new Date(subscription.endTime).toLocaleDateString()}.
+            Cancellation scheduled. Access continues until {new Date(subscription.endTime).toLocaleDateString()}.
           </p>
         ) : null}
 
@@ -169,7 +169,7 @@ export default function SubscriptionDetailPage() {
               <option value="">Select a plan…</option>
               {otherPlans.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.name} — {p.currency} {p.amount}
+                  {p.name} · {p.currency} {p.amount}
                 </option>
               ))}
             </select>

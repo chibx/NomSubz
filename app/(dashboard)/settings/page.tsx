@@ -124,12 +124,12 @@ export default function SettingsPage() {
           ) : (
             <>
               <p className="mb-3 text-sm font-semibold text-foreground">Scan this QR code in your authenticator app</p>
-              {/* Render the TOTP URI as a link — a real QR library can be added later */}
+              {/* Render the TOTP URI as a link . a real QR library can be added later */}
               <div className="mb-4 rounded-lg border border-border bg-background p-3">
                 <p className="mb-1 text-[11px] font-medium text-muted">TOTP URI (paste into your app if QR isn&apos;t available):</p>
                 <code className="break-all text-[11px] text-foreground">{setupData.totpURI}</code>
               </div>
-              <p className="mb-2 text-sm font-semibold text-foreground">Backup codes — save these somewhere safe:</p>
+              <p className="mb-2 text-sm font-semibold text-foreground">Backup codes. Save these somewhere safe:</p>
               <div className="mb-5 grid grid-cols-2 gap-1.5 rounded-lg border border-border bg-background p-3">
                 {setupData.backupCodes.map((code) => (
                   <code key={code} className="text-[12px] text-foreground">{code}</code>
@@ -163,7 +163,7 @@ export default function SettingsPage() {
         </div>
         {newKey && (
           <div className="mt-3 rounded-lg border border-brand-tint bg-brand-soft p-4">
-            <p className="text-sm font-semibold text-foreground">Copy this key now — it won&apos;t be shown again:</p>
+            <p className="text-sm font-semibold text-foreground">Copy this key now. It won&apos;t be shown again:</p>
             <code className="mt-1 block text-sm text-foreground">{newKey}</code>
           </div>
         )}

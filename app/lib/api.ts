@@ -1,6 +1,6 @@
 /**
  * Shared API client for NomSubz frontend.
- * Matches the real backend contract exactly — form data for auth endpoints,
+ * Matches the real backend contract exactly -- form data for auth endpoints,
  * JSON elsewhere. No mock data anywhere.
  */
 
@@ -163,23 +163,23 @@ export function whoami() {
 }
 
 // ---- 2FA ----
-// POST /auth/2fa/setup — returns secret, totpURI, backupCodes (no body required)
+// POST /auth/2fa/setup -- returns secret, totpURI, backupCodes (no body required)
 export function setup2FA() {
     return jsonRequest<TwoFASetupData>("/auth/2fa/setup", { method: "POST" });
 }
 
-// POST /auth/2fa/enable — form data: token (6-digit OTP)
+// POST /auth/2fa/enable -- form data: token (6-digit OTP)
 export function enable2FA(token: string) {
     return formRequest<null>("/auth/2fa/enable", { token });
 }
 
 // ---- Customers ----
-// GET /customers — stub, no list handler yet
+// GET /customers -- stub, no list handler yet
 export function listCustomers() {
     return jsonRequest<Subscriber[]>("/customers");
 }
 
-// POST /customers — form data: userId + email (both required per CreateSubscriberSchema)
+// POST /customers -- form data: userId + email (both required per CreateSubscriberSchema)
 export function createCustomer(fields: { userId: string; email: string }) {
     return formRequest<{ subscriberId: string }>("/customers", fields);
 }
@@ -203,7 +203,7 @@ export function setDefaultPaymentMethod(customerId: string, cardId: string) {
     return jsonRequest<null>(`/customers/${customerId}/payment-methods/${cardId}/default`, { method: "PUT" });
 }
 
-// ---- Plans — top-level /api/plans (moved back from per-customer) ----
+// ---- Plans -- top-level /api/plans (moved back from per-customer) ----
 
 export function listPlans() {
     return jsonRequest<Plan[]>("/plans");
@@ -244,7 +244,7 @@ export function listSubscriptions(
     return jsonRequest<ListSubscriptionsResponse>(`/customers/${customerId}/subscriptions${query}`);
 }
 
-// POST — returns checkoutLink if no card on file (redirect customer to Nomba checkout).
+// POST -- returns checkoutLink if no card on file (redirect customer to Nomba checkout).
 // Returns empty data if charging existing card directly.
 export function createSubscription(customerId: string, body: { planId: string; cardId?: string; callbackUrl: string }) {
     return jsonRequest<CreateSubscriptionResponse>(`/customers/${customerId}/subscriptions`, { method: "POST", body });
@@ -273,7 +273,7 @@ export function cancelSubscription(customerId: string, subscriptionId: string) {
     return jsonRequest<null>(`/customers/${customerId}/subscriptions/${subscriptionId}/cancel`, { method: "POST" });
 }
 
-// ---- Invoices — stubs ----
+// ---- Invoices -- stubs ----
 
 export function listInvoices() {
     return jsonRequest<Invoice[]>("/invoices");
@@ -291,7 +291,7 @@ export function getInvoicePdfUrl(customerId: string, invoiceId: string) {
     return `${BASE}/customers/${customerId}/invoices/${invoiceId}/pdf`;
 }
 
-// ---- Webhooks — stubs ----
+// ---- Webhooks -- stubs ----
 
 export function listWebhookEndpoints() {
     return jsonRequest<WebhookEndpoint[]>("/webhooks/endpoints");
@@ -301,13 +301,13 @@ export function createWebhookEndpoint(url: string) {
     return jsonRequest<WebhookEndpoint>("/webhooks/endpoints", { method: "POST", body: { webhookUrl: url } });
 }
 
-// ---- Analytics — no route yet ----
+// ---- Analytics -- no route yet ----
 
 export function getAnalytics() {
     return jsonRequest<Analytics>("/analytics");
 }
 
-// ---- Settings / API keys — no routes yet ----
+// ---- Settings / API keys -- no routes yet ----
 
 export function updateProfile(body: { name?: string; email?: string }) {
     return jsonRequest<null>("/settings/profile", { method: "PATCH", body });

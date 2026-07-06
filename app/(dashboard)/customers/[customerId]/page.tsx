@@ -74,7 +74,7 @@ export default function CustomerDetailPage() {
         {customer?.userId ?? "Customer"}
       </h1>
       <p className="mt-1 text-sm text-muted">
-        Customer since {customer ? new Date(customer.createdAt).toLocaleDateString() : "—"}
+        Customer since {customer ? new Date(customer.createdAt).toLocaleDateString() : "-"}
       </p>
 
       {/* Payment methods */}
@@ -85,7 +85,7 @@ export default function CustomerDetailPage() {
             <EmptyState title="No saved cards" />
           ) : (
             <div className="overflow-hidden rounded-xl border border-border bg-surface">
-              <table className="w-full text-left text-sm">
+              <div className="table-wrap"><table className="w-full text-left text-sm">
                 <thead className="border-b border-border bg-background">
                   <tr>
                     <th className="px-5 py-3 font-medium text-muted">Card</th>
@@ -119,7 +119,7 @@ export default function CustomerDetailPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           )}
         </div>
@@ -136,7 +136,7 @@ export default function CustomerDetailPage() {
             />
           ) : (
             <div className="overflow-hidden rounded-xl border border-border bg-surface">
-              <table className="w-full text-left text-sm">
+              <div className="table-wrap"><table className="w-full text-left text-sm">
                 <thead className="border-b border-border bg-background">
                   <tr>
                     <th className="px-5 py-3 font-medium text-muted">Plan</th>
@@ -162,7 +162,7 @@ export default function CustomerDetailPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           )}
         </div>
@@ -179,7 +179,7 @@ export default function CustomerDetailPage() {
             />
           ) : (
             <div className="overflow-hidden rounded-xl border border-border bg-surface">
-              <table className="w-full text-left text-sm">
+              <div className="table-wrap"><table className="w-full text-left text-sm">
                 <thead className="border-b border-border bg-background">
                   <tr>
                     <th className="px-5 py-3 font-medium text-muted">Date</th>
@@ -205,7 +205,7 @@ export default function CustomerDetailPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           )}
         </div>

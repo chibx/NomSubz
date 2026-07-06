@@ -52,7 +52,7 @@ export default function EditPlanPage() {
     <div>
       <Link href="/plans" className="text-sm font-medium text-muted hover:text-foreground">← Back to plans</Link>
       <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-foreground">Edit plan</h1>
-      <p className="mt-1 text-sm text-muted">Price is locked — create a new plan to change pricing.</p>
+      <p className="mt-1 text-sm text-muted">Price is locked. Create a new plan to change pricing.</p>
 
       <form onSubmit={handleSubmit} className="mt-6 max-w-md rounded-xl border border-border bg-surface p-6">
         <div className="mb-4">
@@ -62,7 +62,7 @@ export default function EditPlanPage() {
         </div>
         <div className="mb-4">
           <label className="mb-1.5 block text-[13px] font-semibold text-foreground">Price</label>
-          <input type="text" disabled value={plan ? `${plan.currency} ${plan.amount}` : "—"}
+          <input type="text" disabled value={plan ? `${plan.currency} ${plan.amount}` : "-"}
             className="w-full cursor-not-allowed rounded-[7px] border border-border bg-background px-3.5 py-2.5 text-sm text-muted" />
         </div>
         <label className="mb-6 flex items-center gap-2.5 text-sm font-medium text-foreground">

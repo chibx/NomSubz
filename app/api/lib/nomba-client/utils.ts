@@ -8,8 +8,7 @@ export enum NombaWebHookEvent {
 }
 
 export function getNombaUrl(endpoint: string, environment?: "sandbox" | "production", customBaseUrl?: string): string {
-    const defaultBaseUrl =
-        environment === "production" ? "https://api.nomba.com/v1" : "https://sandbox-api.nomba.com/v1";
+    const defaultBaseUrl = environment === "production" ? "https://api.nomba.com/v1" : "https://sandbox.nomba.com/v1";
 
     const base = customBaseUrl || defaultBaseUrl;
     // Remove trailing slash if any

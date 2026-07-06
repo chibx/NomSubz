@@ -1,4 +1,4 @@
-import { createConsola, LogLevels } from "consola";
+import { createConsola, LogLevels } from "consola/browser";
 import { Epoch, Snowyflake } from "snowyflake";
 import { PgBoss } from "pg-boss";
 import { databaseUrl, isDebug, nombaAccountId, nombaClientId, nombaClientSecret } from "./env";
@@ -53,8 +53,8 @@ export const logger = createConsola({
     throttle: 3,
     reporters: [
         {
-            log: (logObj, ctx) => {
-                ctx.options.stdout?.write(JSON.stringify(logObj));
+            log: (logObj) => {
+                console.log(JSON.stringify(logObj));
             },
         },
     ],

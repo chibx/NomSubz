@@ -25,6 +25,8 @@ export const STATUS_FORBIDDEN = 403;
 export const STATUS_NOT_FOUND = 404;
 export const STATUS_OK = 200;
 
+export const NAIRA = "NGN";
+
 export const subscriptionDurations = Object.freeze<Record<PlanType, number>>({
     weekly: DAYS_7,
     monthly: 30 * DAY_1,

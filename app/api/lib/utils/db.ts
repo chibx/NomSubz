@@ -10,7 +10,13 @@ import {
     subscriptions,
 } from "../db/schema";
 import { addWithSubscriptionDuration, FriendlyError, nombaClient, toGoErrorRet } from "./utils";
-import { STATUS_BAD_REQUEST, STATUS_INTERNAL_SERVER_ERROR, STATUS_NOT_FOUND, subscriptionDurations } from "./constants";
+import {
+    NAIRA,
+    STATUS_BAD_REQUEST,
+    STATUS_INTERNAL_SERVER_ERROR,
+    STATUS_NOT_FOUND,
+    subscriptionDurations,
+} from "./constants";
 import { ApplicationLogEvents, ApplicationLogMeta, PlanType, PlanUpgradeWebHook, WebHookTypes } from "../types/types";
 import { Decimal } from "decimal.js";
 import { CALLBACK_URL } from "@/app/shared/constants";
@@ -118,7 +124,7 @@ function prorate({
 }
 
 async function handleExtraAmountToPay(arg: extraAmountToPayArg) {
-    const orderReference = `${arg.appId}-${arg.subscriberId}-${arg.subscriptionId}-${arg.currentDate.getTime()}`;
+    const orderReference = `${arg.appId}-${arg.subscriptionId}-${arg.currentDate.getTime()}`;
 
     await nombaClient.chargeTokenizedCard({
         order: {
@@ -127,7 +133,7 @@ async function handleExtraAmountToPay(arg: extraAmountToPayArg) {
             callbackUrl: CALLBACK_URL,
             customerEmail: arg.customerEmail,
             amount: arg.amountX100,
-            currency: "NGN",
+            currency: NAIRA,
             orderMetaData: {
                 type: WebHookTypes.PLAN_CHANGE_UPGRADE,
                 newPlanId: arg.planId!.toString(),

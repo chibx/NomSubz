@@ -170,7 +170,7 @@ async function getCompoundSubscription(arg: UpdateSubscriptionArg) {
             .innerJoin(applications, eq(applications.id, subscribers.appId))
             .innerJoin(subscriberCards, eq(cardId, subscriberCards.id))
             .innerJoin(plans, eq(plans.id, subscriptions.planId))
-            .where(and(eq(subscriptions.id, arg.subscriptionId), eq(subscriptions.id, arg.subscriptionId)))
+            .where(and(eq(subscriptions.appId, arg.appId), eq(subscriptions.id, arg.subscriptionId)))
     )[0];
 }
 
@@ -280,6 +280,7 @@ export const updateSubscription = toGoErrorRet(async (arg: UpdateSubscriptionArg
     let extraData: extraMeta | undefined;
 
     const conditions = [
+        eq(subscriptions.appId, arg.appId),
         eq(subscriptions.id, arg.subscriptionId),
         eq(subscriptions.subscriberId, arg.subscriberId),
         arg.planId
@@ -411,7 +412,13 @@ export async function handleSuccessfulPlanChange(arg: handleSuccessfulPlanChange
                 .set({
                     planId: BigInt(arg.newPlanId),
                 })
-                .where(and(eq(subscriptions.id, arg.subscriptionId), eq(subscriptions.subscriberId, arg.subscriberId))),
+                .where(
+                    and(
+                        eq(subscriptions.appId, arg.appId),
+                        eq(subscriptions.id, arg.subscriptionId),
+                        eq(subscriptions.subscriberId, arg.subscriberId),
+                    ),
+                ),
         );
 
         promises.push(
@@ -462,6 +469,7 @@ export async function handleSuccessfulSubscription(arg: handleSuccessfulSubscrip
         const res = await tx
             .insert(subscriptions)
             .values({
+                appId: arg.appId,
                 planId: arg.planId,
                 subscriberId: arg.subscriberId,
                 cardId: arg.cardId,

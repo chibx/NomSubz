@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import { logout } from "@/app/lib/api";
 
 const NAV = [
@@ -17,43 +18,52 @@ const NAV = [
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const [open, setOpen] = useState(false);
+
+  // Close sidebar on route change (mobile)
+  useEffect(() => { setOpen(false); }, [pathname]);
+
+  // Lock body scroll when mobile sidebar open
+  useEffect(() => {
+    if (open) document.body.style.overflow = "hidden";
+    else document.body.style.overflow = "";
+    return () => { document.body.style.overflow = ""; };
+  }, [open]);
 
   async function handleLogout() {
     await logout();
     router.push("/login");
   }
 
-  return (
-    <aside className="fixed inset-y-0 left-0 z-50 flex w-64 flex-col"
-      style={{ background: "var(--surface)", borderRight: "1px solid var(--border)" }}>
-
+  const sidebar = (
+    <aside className="flex h-full w-64 flex-col sidebar-glass border-r border-border">
       {/* Logo */}
-      <div className="flex items-center gap-3 px-6 py-6" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-foreground flex-shrink-0">
-          <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
+      <div className="flex items-center gap-3 px-6 py-5 border-b border-border-subtle">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-foreground flex-shrink-0">
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24">
             <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
               stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </div>
         <div>
-          <p className="text-[16px] font-black tracking-tight text-foreground">NomSubz</p>
-          <p className="text-[10px] font-medium" style={{ color: "var(--muted-foreground)" }}>Dashboard</p>
+          <p className="text-[15px] font-bold tracking-tight text-foreground">NomSubz</p>
+          <p className="text-[10px] font-medium text-muted-foreground">Dashboard</p>
         </div>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 space-y-0.5 px-3 py-5 overflow-y-auto">
+      <nav className="flex-1 space-y-0.5 px-3 py-4 overflow-y-auto">
         {NAV.map((item) => {
           const active = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
           return (
             <Link key={item.href} href={item.href}
-              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all"
-              style={{
-                background: active ? "var(--brand-soft)" : "transparent",
-                color: active ? "var(--foreground)" : "var(--muted)",
-                borderLeft: active ? "2px solid var(--foreground)" : "2px solid transparent",
-              }}>
-              <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              className={`flex items-center gap-3 rounded-lg px-3 py-2 text-[13.5px] font-medium transition-all ${
+                active
+                  ? "bg-brand-soft text-foreground"
+                  : "text-muted hover:bg-surface-raised hover:text-foreground"
+              }`}
+              style={{ borderLeft: active ? "2px solid var(--foreground)" : "2px solid transparent" }}>
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d={item.icon} />
               </svg>
               {item.label}
@@ -63,18 +73,67 @@ export function Sidebar() {
       </nav>
 
       {/* Logout */}
-      <div className="px-3 pb-6" style={{ borderTop: "1px solid var(--border-subtle)", paddingTop: "16px" }}>
+      <div className="px-3 pb-5 border-t border-border-subtle pt-3">
         <button onClick={handleLogout}
-          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all"
-          style={{ color: "var(--muted)" }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = "#b91c1c")}
-          onMouseLeave={(e) => (e.currentTarget.style.color = "var(--muted)")}>
-          <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-[13.5px] font-medium text-muted transition-all hover:bg-red-50 hover:text-red-700">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
           </svg>
           Sign out
         </button>
       </div>
     </aside>
+  );
+
+  return (
+    <>
+      {/* Mobile: top bar with hamburger */}
+      <div className="topbar-glass fixed inset-x-0 top-0 z-50 flex h-14 items-center justify-between px-4 md:hidden">
+        <Link href="/dashboard" className="flex items-center gap-2">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-foreground">
+            <svg width="12" height="12" fill="none" viewBox="0 0 24 24">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+                stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <span className="text-[14px] font-bold tracking-tight">NomSubz</span>
+        </Link>
+        <button onClick={() => setOpen(v => !v)}
+          className="relative flex h-8 w-8 items-center justify-center rounded-lg border border-border"
+          aria-label={open ? "Close menu" : "Open menu"}>
+          <span style={{
+            position: "absolute", width: 14, height: 1.5, background: "#0A0A0A", borderRadius: 2,
+            transform: open ? "translateY(0) rotate(45deg)" : "translateY(-3.5px)",
+            transition: "transform 0.3s cubic-bezier(0.22,1,0.36,1)",
+          }} />
+          <span style={{
+            position: "absolute", width: 14, height: 1.5, background: "#0A0A0A", borderRadius: 2,
+            opacity: open ? 0 : 1, transition: "opacity 0.2s ease",
+          }} />
+          <span style={{
+            position: "absolute", width: 14, height: 1.5, background: "#0A0A0A", borderRadius: 2,
+            transform: open ? "translateY(0) rotate(-45deg)" : "translateY(3.5px)",
+            transition: "transform 0.3s cubic-bezier(0.22,1,0.36,1)",
+          }} />
+        </button>
+      </div>
+
+      {/* Mobile: overlay + slide-in sidebar */}
+      {open && (
+        <div className="sidebar-overlay md:hidden" onClick={() => setOpen(false)} />
+      )}
+      <div className="fixed inset-y-0 left-0 z-50 hidden md:block">
+        {sidebar}
+      </div>
+      <div
+        className="fixed inset-y-0 left-0 z-50 md:hidden"
+        style={{
+          transform: open ? "translateX(0)" : "translateX(-100%)",
+          transition: "transform 0.35s cubic-bezier(0.22,1,0.36,1)",
+        }}
+      >
+        {sidebar}
+      </div>
+    </>
   );
 }

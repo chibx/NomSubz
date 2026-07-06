@@ -100,7 +100,7 @@ export default function SubscriptionsPage() {
         ) : (
           <>
             <div className="overflow-hidden rounded-xl border border-border bg-surface">
-              <table className="w-full text-left text-sm">
+              <div className="table-wrap"><table className="w-full text-left text-sm">
                 <thead className="border-b border-border bg-background-2">
                   <tr>
                     <th className="px-5 py-3 font-medium text-muted">Plan</th>
@@ -129,7 +129,7 @@ export default function SubscriptionsPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
 
             {hasMore && (

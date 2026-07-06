@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 
 // Two shader variants: FULL (desktop) uses 7-octave FBM for sharp detail,
-// LITE (mobile/low-end) uses 4-octave with cheaper smoothing — same look, half the GPU cost.
+// LITE (mobile/low-end) uses 4-octave with cheaper smoothing -- same look, half the GPU cost.
 
 const FRAG_FULL = `
 precision mediump float;
@@ -174,7 +174,7 @@ export function Mist() {
       window.addEventListener("pointermove", onMove, { passive: true });
     }
 
-    // Resolution: desktop gets 0.6x DPR, mobile gets 0.28x — silk is blurry anyway
+    // Resolution: desktop gets 0.6x DPR, mobile gets 0.28x -- silk is blurry anyway
     const DPR = Math.min(window.devicePixelRatio || 1, 1.5) * (isMobile ? 0.28 : 0.6);
     const resize = () => {
       const p = canvas.parentElement;
@@ -186,7 +186,7 @@ export function Mist() {
     };
     resize();
 
-    // Debounced resize — no layout thrash on drag-resize
+    // Debounced resize -- no layout thrash on drag-resize
     let resizeTimer = 0;
     const debouncedResize = () => {
       clearTimeout(resizeTimer);
@@ -202,7 +202,7 @@ export function Mist() {
     // Mobile: cap at 20fps
     const interval = isMobile ? 50 : 33;
 
-    // Pause when hero is offscreen — zero GPU when scrolled past
+    // Pause when hero is offscreen -- zero GPU when scrolled past
     let visible = true;
     const observer = new IntersectionObserver(
       ([entry]) => { visible = entry.isIntersecting; },

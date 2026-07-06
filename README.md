@@ -186,3 +186,42 @@ INTERNAL_API_KEY_SALT=
 ## License
 
 MIT — built for **Team Flint** 2026.
+
+---
+
+## Frontend
+
+The frontend is a full Next.js 16 implementation covering the landing page, authentication, and the complete dashboard. All screens are wired to the real backend API — no mock data in production.
+
+### Pages
+
+| Route | Description |
+|---|---|
+| `/` | Landing page with WebGL shader background, feature sections, lifecycle diagram, accordion FAQ |
+| `/login` | Email/password login with TOTP 2FA support |
+| `/register` | Business registration with optional logo URL |
+| `/dashboard` | Revenue overview, analytics stats, quick access grid |
+| `/plans` | List, create, and edit subscription plans |
+| `/customers` | Customer list, add customer, payment method management |
+| `/subscriptions` | List, create, pause, resume, cancel, and change plan |
+| `/invoices` | Invoice list and detail with PDF buffer download |
+| `/webhooks` | Single-endpoint webhook registration |
+| `/settings` | TOTP 2FA setup, enable, backup codes, API key management |
+
+### Design system
+
+Linear-style light theme built on CSS custom properties. Full token set: background, foreground, brand, muted, border, surface, and status colors (success, pending, failed, paused). Glassmorphism nav and sidebar (`blur(64px) saturate(2.2)`). Responsive: desktop sidebar + mobile slide-in drawer with hamburger-to-X animation.
+
+### Notable implementation details
+
+**PDF download** — calls the `/pdf` endpoint, reads the byte buffer via `res.blob()`, creates an object URL, and triggers a file download as `invoice-{id}.pdf`. No redirect, no new tab.
+
+**WebGL hero** — two shader variants: 7-octave FBM on desktop, 4-octave on mobile. IntersectionObserver pauses rendering when the hero scrolls offscreen. Capped at 30fps desktop, 20fps mobile. Falls back to CSS gradient on devices with less than 2GB RAM.
+
+**2FA flow** — login detects `requires2FA` in the response, stores the pending token, and transitions to an OTP input step in the same page without a redirect.
+
+### Tech
+
+Next.js 16, TypeScript, Tailwind CSS v4, Framer Motion (landing animations).
+
+Built by [Abdullahi Oriola](https://abdullahioriola.vercel.app).

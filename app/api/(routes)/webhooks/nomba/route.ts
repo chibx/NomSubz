@@ -24,6 +24,9 @@ export async function POST(req: NextRequest) {
         }
         return structuredResponse(STATUS_INTERNAL_SERVER_ERROR, DUMMY_500_MESSAGE, null);
     }
+
+    // TODO: This is for testing in my logs
+    logger.success("Webhook parsed successfully", webhook.data.order?.orderMetaData);
     if (webhook.event_type === EventType.PAYMENT_SUCCESS) {
         const data = webhook.data;
         const order = data?.order;

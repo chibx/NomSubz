@@ -1,0 +1,173 @@
+import { and, eq, exists, inArray, lte, sql } from "drizzle-orm";
+import { appDB } from "../db/db";
+import { fromDrizzle, Job } from "pg-boss";
+import { activeRenewals, subscriptions } from "../db/schema";
+import { DunningJobData, ProcessPaymentJobData } from "../types/types";
+import { addWithSubscriptionDuration, logger, nombaClient, pgBoss } from "../utils/utils";
+import { QUEUES, DUNNING_PERIOD, MAX_DB_LIMIT } from "./constants";
+import { CALLBACK_URL } from "@/app/shared/constants";
+import { attemptCharge, getSubscriptionDetails } from "./utils";
+import { NombaRateLimitError } from "../nomba-client/types";
+import { NAIRA } from "../utils/constants";
+
+export async function ScheduleRenewalsWork() {
+    const dueSubscriptions = await appDB
+        .select({ id: subscriptions.id, appId: subscriptions.appId, endTime: subscriptions.endTime })
+        .from(subscriptions)
+        .where(
+            and(
+                exists(
+                    appDB
+                        .select({ a: sql`1` })
+                        .from(activeRenewals)
+                        .where(
+                            and(
+                                eq(activeRenewals.appId, subscriptions.appId),
+                                eq(activeRenewals.subscriptionId, subscriptions.id),
+                            ),
+                        ),
+                ),
+                eq(subscriptions.status, "active"),
+                lte(subscriptions.endTime, new Date()),
+                eq(subscriptions.cancelAtEnd, false),
+            ),
+        )
+        .limit(MAX_DB_LIMIT);
+
+    for (const sub of dueSubscriptions) {
+        await appDB.transaction(async (tx) => {
+            await Promise.all([
+                tx.insert(activeRenewals).values({
+                    appId: sub.appId,
+                    subscriptionId: sub.id,
+                    createdAt: new Date(),
+                }),
+                pgBoss.send(
+                    QUEUES.PROCESS_PAYMENT,
+                    {
+                        appId: sub.appId,
+                        subscriptionId: sub.id,
+                        endTime: sub.endTime.toISOString(),
+                    } satisfies ProcessPaymentJobData,
+                    { db: fromDrizzle(tx, sql) },
+                ),
+            ]);
+        });
+    }
+}
+
+export async function CancelSubscriptionWork([]: Job<unknown>[]) {
+    const subsToCancel = await appDB
+        .select({ id: subscriptions.id })
+        .from(subscriptions)
+        .where(
+            and(
+                inArray(subscriptions.status, ["active", "paused"]),
+                lte(subscriptions.endTime, new Date()),
+                eq(subscriptions.cancelAtEnd, true),
+            ),
+        )
+        .limit(MAX_DB_LIMIT);
+
+    const promises: Promise<unknown>[] = [];
+    for (const sub of subsToCancel) {
+        promises.push(
+            appDB
+                .update(subscriptions)
+                .set({
+                    status: "cancelled",
+                })
+                .where(eq(subscriptions.id, sub.id)),
+        );
+    }
+    await Promise.all(promises);
+}
+
+export async function ProcessPaymentWork([job]: Job<ProcessPaymentJobData>[]) {
+    const { appId, subscriptionId, endTime } = job.data;
+
+    const [sub, error$1] = await getSubscriptionDetails(appId, subscriptionId);
+    if (error$1 !== null) {
+        logger.error("[PGBoss]: Failed to get subscription with card", error$1);
+        return;
+    }
+
+    try {
+        const orderRef = `renewal-${appId}-${subscriptionId}-${Date.now()}`;
+        await nombaClient.chargeTokenizedCard({
+            order: {
+                amount: sub.planAmount,
+                callbackUrl: CALLBACK_URL,
+                customerEmail: sub.email,
+                currency: NAIRA,
+                orderReference: orderRef,
+                orderMetaData: {
+                    appId,
+                    subscriptionId,
+                    subscriberId: sub.subscriberId.toString(),
+                    planId: sub.planId.toString(),
+                    endTime,
+                },
+            },
+            tokenKey: sub.cardToken,
+        });
+
+        await appDB
+            .update(subscriptions)
+            .set({
+                startTime: new Date(),
+                endTime: addWithSubscriptionDuration(new Date(), sub.planType),
+            })
+            .where(eq(subscriptions.id, subscriptionId));
+    } catch (error) {
+        if (error instanceof NombaRateLimitError) {
+            logger.warn("[PGBoss]: Nomba API rate limit exceeded, retrying later", error);
+            return;
+        }
+
+        logger.error("[PGBoss]: Failed to process payment", error);
+        await appDB.transaction(async (tx) => {
+            await Promise.all([
+                await tx.update(subscriptions).set({ status: "past_due" }).where(eq(subscriptions.id, subscriptionId)),
+                pgBoss.send(
+                    QUEUES.DUNNING_RETRY,
+                    {
+                        appId,
+                        subscriptionId,
+                        attempt: 1,
+                        initialEndTime: endTime,
+                    } as DunningJobData,
+                    {
+                        startAfter: DUNNING_PERIOD, // pg-boss will hide this job for 3 days!
+                        db: fromDrizzle(tx, sql),
+                        retryLimit: 5,
+                    },
+                ),
+            ]);
+        });
+    }
+}
+
+export async function DunningRetryWork([job]: Job<DunningJobData>[]) {
+    const { appId, subscriptionId, attempt, initialEndTime } = job.data;
+
+    const [, error$1] = await attemptCharge({ appId, subscriptionId, initialEndTime });
+
+    if (error$1 === null) {
+        await appDB.update(subscriptions).set({ status: "active" }).where(eq(subscriptions.id, subscriptionId));
+    } else {
+        if (attempt === 1) {
+            await pgBoss.send(
+                QUEUES.DUNNING_RETRY,
+                { appId, subscriptionId, attempt: 2, initialEndTime },
+                { startAfter: 5 * 24 * 60 * 60, retryLimit: 5 },
+            );
+        } else {
+            // Final failure. Game over. Cancel the subscription.
+            await appDB.transaction(async (tx) => {
+                await tx.update(subscriptions).set({ status: "cancelled" }).where(eq(subscriptions.id, subscriptionId));
+                await pgBoss.fail(QUEUES.DUNNING_RETRY, job.id, { db: fromDrizzle(tx, sql) });
+            });
+        }
+    }
+}

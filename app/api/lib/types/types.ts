@@ -116,11 +116,13 @@ export type ProcessPaymentWebHook = {
 export type WebHookVariants = PlanUpgradeWebHook | PlanSubscriptionWebhook | ProcessPaymentWebHook;
 
 export type ProcessPaymentJobData = {
+    appId: string;
     subscriptionId: string;
     endTime: string;
 };
 
 export type DunningJobData = {
+    appId: string;
     subscriptionId: string;
     attempt: number;
     initialEndTime: string;

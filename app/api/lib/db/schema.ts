@@ -243,8 +243,9 @@ export const subscriptions = pgTable(
     "subscriptions",
     {
         id: uuid("id")
-            .primaryKey()
+            .notNull()
             .$defaultFn(() => uuidv7()),
+        appId: uuid("app_id").notNull(),
         subscriberId: bigint("subscriber_id", { mode: "bigint" }).notNull(),
         planId: bigint("plan_id", { mode: "bigint" }).notNull(),
         cardId: uuid("card_id").notNull(),
@@ -263,9 +264,14 @@ export const subscriptions = pgTable(
         index("subscriptions_start_time_idx").on(table.startTime),
         index("subscriptions_end_time_idx").on(table.endTime),
         index("subscriptions_plan_id_idx").on(table.planId),
+        primaryKey({ columns: [table.id, table.appId] }),
         foreignKey({
             columns: [table.subscriberId],
             foreignColumns: [subscribers.subscriberId],
+        }).onDelete("cascade"),
+        foreignKey({
+            columns: [table.appId],
+            foreignColumns: [applications.id],
         }).onDelete("cascade"),
         foreignKey({
             columns: [table.planId],

@@ -2,11 +2,9 @@ import { appDB } from "../db/db";
 import { plans, subscriberCards, subscribers, subscriptions } from "../db/schema";
 import { STATUS_NOT_FOUND } from "../utils/constants";
 import { FriendlyError, toGoErrorRet } from "../utils/utils";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
-export const dunningPeriod = 3 * 24 * 60 * 60;
-
-export const getSubscriptionDetails = toGoErrorRet(async (subscriptionId: string) => {
+export const getSubscriptionDetails = toGoErrorRet(async (appId: string, subscriptionId: string) => {
     const result = await appDB
         .select({
             planId: plans.id,
@@ -20,7 +18,7 @@ export const getSubscriptionDetails = toGoErrorRet(async (subscriptionId: string
         .innerJoin(subscriberCards, eq(subscriptions.cardId, subscriberCards.id))
         .innerJoin(plans, eq(subscriptions.planId, plans.id))
         .innerJoin(subscribers, eq(subscriptions.subscriberId, subscribers.subscriberId))
-        .where(eq(subscriptions.id, subscriptionId));
+        .where(and(eq(subscriptions.appId, appId), eq(subscriptions.id, subscriptionId)));
 
     if (result.length === 0) {
         throw new FriendlyError(STATUS_NOT_FOUND, "Subscription not found");
@@ -36,6 +34,6 @@ export const getSubscriptionDetails = toGoErrorRet(async (subscriptionId: string
     };
 });
 
-export const attemptCharge = toGoErrorRet(async (subscriptionId: string) => {
+export const attemptCharge = toGoErrorRet(async (appId: string, subscriptionId: string) => {
     return true;
 });

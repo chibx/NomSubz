@@ -17,6 +17,7 @@ import {
     check,
     json,
     pgEnum,
+    primaryKey,
 } from "drizzle-orm/pg-core";
 import { uuidv7 } from "uuidv7";
 import { snowflake } from "../utils/utils";
@@ -274,6 +275,27 @@ export const subscriptions = pgTable(
             columns: [table.cardId],
             foreignColumns: [subscriberCards.id],
         }).onDelete("restrict"),
+    ],
+);
+
+export const activeRenewals = pgTable(
+    "active_renewals",
+    {
+        appId: uuid("app_id").notNull(),
+        subscriptionId: uuid("subscription_id").notNull(),
+        createdAt: timestamp("created_at", { mode: "date" }).notNull(),
+    },
+    (table) => [
+        index("active_renewals_created_at").on(table.createdAt),
+        primaryKey({ columns: [table.appId, table.subscriptionId] }),
+        foreignKey({
+            columns: [table.subscriptionId],
+            foreignColumns: [subscriptions.id],
+        }).onDelete("cascade"),
+        foreignKey({
+            columns: [table.appId],
+            foreignColumns: [applications.id],
+        }).onDelete("cascade"),
     ],
 );
 

@@ -60,7 +60,7 @@ export async function POST(
 
     const currentStatus = currentSub[0].status;
 
-    if (currentStatus === "cancelled" || currentStatus === "pending") {
+    if (currentStatus === "cancelled" || currentStatus === "past_due") {
         return structuredResponse(
             STATUS_BAD_REQUEST,
             `Cannot resume subscription with status "${currentStatus}". Only paused subscriptions can be resumed. Start a new subscription instead.`,

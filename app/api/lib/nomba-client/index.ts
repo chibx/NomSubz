@@ -58,7 +58,7 @@ export class NombaClient {
      * https://developer.nomba.com/docs/guides/authentication-best-practises
      */
     async authenticate(): Promise<AuthenticateResponse> {
-        const url = getNombaUrl("/v1/auth/token", this.environment, this.baseUrl);
+        const url = getNombaUrl("/v1/auth/token/issue", this.environment, this.baseUrl);
         const headers = {
             "Content-Type": "application/json",
             accountId: this.accountId,

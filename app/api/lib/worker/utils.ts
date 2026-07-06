@@ -4,6 +4,8 @@ import { STATUS_NOT_FOUND } from "../utils/constants";
 import { FriendlyError, toGoErrorRet } from "../utils/utils";
 import { eq } from "drizzle-orm";
 
+export const dunningPeriod = 3 * 24 * 60 * 60;
+
 export const getSubscriptionDetails = toGoErrorRet(async (subscriptionId: string) => {
     const result = await appDB
         .select({

@@ -8,6 +8,7 @@ import { QUEUES, DUNNING_PERIOD, MAX_DB_LIMIT } from "./constants";
 import { CALLBACK_URL } from "@/app/shared/constants";
 import { attemptCharge, getSubscriptionDetails } from "./utils";
 import { NombaRateLimitError } from "../nomba-client/types";
+import { NAIRA } from "../utils/constants";
 
 export async function ScheduleRenewalsWork() {
     const dueSubscriptions = await appDB
@@ -37,8 +38,8 @@ export async function ScheduleRenewalsWork() {
         await appDB.transaction(async (tx) => {
             await Promise.all([
                 tx.insert(activeRenewals).values({
-                    subscriptionId: sub.id,
                     appId: sub.appId,
+                    subscriptionId: sub.id,
                     createdAt: new Date(),
                 }),
                 pgBoss.send(
@@ -85,7 +86,6 @@ export async function CancelSubscriptionWork([]: Job<unknown>[]) {
 export async function ProcessPaymentWork([job]: Job<ProcessPaymentJobData>[]) {
     const { appId, subscriptionId, endTime } = job.data;
 
-    // Fetch full sub details & user's default tokenized card via Drizzle
     const [sub, error$1] = await getSubscriptionDetails(appId, subscriptionId);
     if (error$1 !== null) {
         logger.error("[PGBoss]: Failed to get subscription with card", error$1);
@@ -93,18 +93,20 @@ export async function ProcessPaymentWork([job]: Job<ProcessPaymentJobData>[]) {
     }
 
     try {
-        const orderRef = `renewal-${subscriptionId}-${Date.now()}`;
+        const orderRef = `renewal-${appId}-${subscriptionId}-${Date.now()}`;
         await nombaClient.chargeTokenizedCard({
             order: {
                 amount: sub.planAmount,
                 callbackUrl: CALLBACK_URL,
                 customerEmail: sub.email,
-                currency: "NGN",
+                currency: NAIRA,
                 orderReference: orderRef,
                 orderMetaData: {
+                    appId,
                     subscriptionId,
                     subscriberId: sub.subscriberId.toString(),
                     planId: sub.planId.toString(),
+                    endTime,
                 },
             },
             tokenKey: sub.cardToken,
@@ -149,7 +151,7 @@ export async function ProcessPaymentWork([job]: Job<ProcessPaymentJobData>[]) {
 export async function DunningRetryWork([job]: Job<DunningJobData>[]) {
     const { appId, subscriptionId, attempt, initialEndTime } = job.data;
 
-    const [, error$1] = await attemptCharge(appId, subscriptionId);
+    const [, error$1] = await attemptCharge({ appId, subscriptionId, initialEndTime });
 
     if (error$1 === null) {
         await appDB.update(subscriptions).set({ status: "active" }).where(eq(subscriptions.id, subscriptionId));

@@ -124,6 +124,13 @@ export type ProcessPaymentJobData = {
 export type DunningJobData = {
     appId: string;
     subscriptionId: string;
+    subscriberId: string;
     attempt: number;
+    initialEndTime: string;
+};
+
+export type AttemptReCharge = {
+    appId: string;
+    subscriptionId: string;
     initialEndTime: string;
 };

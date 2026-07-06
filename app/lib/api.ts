@@ -68,10 +68,10 @@ export type CreateSubscriptionResponse = {
 };
 
 export type Analytics = {
-    TotalRevenue: number;
-    NewUsers: number;
-    LostUsers: number;
-    OngoingSubscriptions: number;
+    totalRevenue: number;
+    newUsers: number;
+    lostUsers: number;
+    ongoingSubscriptions: number;
 };
 
 export type Invoice = {

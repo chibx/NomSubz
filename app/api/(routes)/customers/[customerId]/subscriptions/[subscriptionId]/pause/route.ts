@@ -48,8 +48,9 @@ export async function POST(
             .set({ status: "paused" })
             .where(
                 and(
-                    eq(subscriptions.subscriberId, subscriberId),
+                    eq(subscriptions.appId, appId),
                     eq(subscriptions.id, subscriptionId),
+                    eq(subscriptions.subscriberId, subscriberId),
                     ne(subscriptions.status, "cancelled"),
                 ),
             ),

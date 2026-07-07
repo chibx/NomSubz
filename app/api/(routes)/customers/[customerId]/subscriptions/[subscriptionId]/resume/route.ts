@@ -46,7 +46,13 @@ export async function POST(
         appDB
             .select({ status: subscriptions.status })
             .from(subscriptions)
-            .where(and(eq(subscriptions.subscriberId, subscriberId), eq(subscriptions.id, subscriptionId))),
+            .where(
+                and(
+                    eq(subscriptions.appId, appId),
+                    eq(subscriptions.id, subscriptionId),
+                    eq(subscriptions.subscriberId, subscriberId),
+                ),
+            ),
     )();
 
     if (error$3 !== null) {
@@ -60,7 +66,7 @@ export async function POST(
 
     const currentStatus = currentSub[0].status;
 
-    if (currentStatus === "cancelled" || currentStatus === "pending") {
+    if (currentStatus === "cancelled" || currentStatus === "past_due") {
         return structuredResponse(
             STATUS_BAD_REQUEST,
             `Cannot resume subscription with status "${currentStatus}". Only paused subscriptions can be resumed. Start a new subscription instead.`,
@@ -71,7 +77,13 @@ export async function POST(
         appDB
             .update(subscriptions)
             .set({ status: "active" })
-            .where(and(eq(subscriptions.subscriberId, subscriberId), eq(subscriptions.id, subscriptionId))),
+            .where(
+                and(
+                    eq(subscriptions.appId, appId),
+                    eq(subscriptions.id, subscriptionId),
+                    eq(subscriptions.subscriberId, subscriberId),
+                ),
+            ),
     )();
 
     if (error$4 !== null) {

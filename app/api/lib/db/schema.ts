@@ -9,7 +9,6 @@ import {
     pgTable,
     text,
     timestamp,
-    uniqueIndex,
     uuid,
     date,
     smallint,
@@ -17,9 +16,11 @@ import {
     check,
     json,
     pgEnum,
+    unique,
 } from "drizzle-orm/pg-core";
 import { uuidv7 } from "uuidv7";
 import { snowflake } from "../utils/utils";
+import { NAIRA } from "../utils/constants";
 
 export enum CardConfirmationStatus {
     PENDING = 0,
@@ -28,7 +29,7 @@ export enum CardConfirmationStatus {
 
 export type AnalyticsPeriodType = number & {};
 
-export const subscriptionsStatusEnum = pgEnum("subscription_status", ["pending", "active", "cancelled", "paused"]);
+export const subscriptionsStatusEnum = pgEnum("subscription_status", ["active", "cancelled", "paused", "past_due"]);
 export const planStatusEnum = pgEnum("plan_status", ["enabled", "disabled"]);
 export const planTypeEnum = pgEnum("plan_type", ["weekly", "monthly", "annually"]);
 export const paymentStatusEnum = pgEnum("payment_status", ["success", "pending", "failed"]);
@@ -51,7 +52,7 @@ export const applications = pgTable(
         settings: json("settings").default({}),
     },
     (table) => [
-        uniqueIndex("apps_email_idx").on(table.email),
+        unique("apps_email_idx").on(table.email),
         index("apps_name_idx").on(table.name),
         index("apps_created_at_idx").on(table.createdAt),
     ],
@@ -60,6 +61,10 @@ export const applications = pgTable(
 export const appApiKeys = pgTable(
     "app_api_keys",
     {
+        id: uuid("id")
+            .primaryKey()
+            .$defaultFn(() => uuidv7()),
+        name: text("name").notNull(),
         secret: text("secret").notNull(),
         prefix: text("prefix").notNull(),
         appId: uuid("app_id").notNull(),
@@ -141,7 +146,7 @@ export const plans = pgTable(
             precision: 15,
             scale: 4,
         }).notNull(),
-        currency: text("currency").notNull().default("NGN"),
+        currency: text("currency").notNull().default(NAIRA),
         status: planStatusEnum("status").notNull().default("enabled"),
         type: planTypeEnum("type").notNull().default("monthly"),
         details: jsonb("details").default({}),
@@ -180,7 +185,7 @@ export const subscribers = pgTable(
     },
     (table) => [
         index("subscribers_appId_idx").on(table.appId),
-        uniqueIndex("subscribers_userId_idx").on(table.appId, table.userId),
+        unique("subscribers_userId_idx").on(table.appId, table.userId),
         index("subscribers_created_at_idx").on(table.createdAt),
         foreignKey({
             columns: [table.appId],
@@ -240,6 +245,7 @@ export const subscriptions = pgTable(
         id: uuid("id")
             .primaryKey()
             .$defaultFn(() => uuidv7()),
+        appId: uuid("app_id").notNull(),
         subscriberId: bigint("subscriber_id", { mode: "bigint" }).notNull(),
         planId: bigint("plan_id", { mode: "bigint" }).notNull(),
         cardId: uuid("card_id").notNull(),
@@ -263,6 +269,10 @@ export const subscriptions = pgTable(
             foreignColumns: [subscribers.subscriberId],
         }).onDelete("cascade"),
         foreignKey({
+            columns: [table.appId],
+            foreignColumns: [applications.id],
+        }).onDelete("cascade"),
+        foreignKey({
             columns: [table.planId],
             foreignColumns: [plans.id],
         }).onDelete("restrict"),
@@ -270,6 +280,27 @@ export const subscriptions = pgTable(
             columns: [table.cardId],
             foreignColumns: [subscriberCards.id],
         }).onDelete("restrict"),
+    ],
+);
+
+export const activeRenewals = pgTable(
+    "active_renewals",
+    {
+        appId: uuid("app_id").notNull(),
+        subscriptionId: uuid("subscription_id").notNull(),
+        createdAt: timestamp("created_at", { mode: "date" }).notNull(),
+    },
+    (table) => [
+        index("active_renewals_created_at").on(table.createdAt),
+        unique("active_renewals_app_id_subscription_id").on(table.appId, table.subscriptionId),
+        foreignKey({
+            columns: [table.subscriptionId],
+            foreignColumns: [subscriptions.id],
+        }).onDelete("cascade"),
+        foreignKey({
+            columns: [table.appId],
+            foreignColumns: [applications.id],
+        }).onDelete("cascade"),
     ],
 );
 
@@ -282,7 +313,7 @@ export const payments = pgTable(
         appId: uuid("app_id").notNull(),
         subscriberId: bigint("subscriber_id", { mode: "bigint" }).notNull(),
         subscriptionId: uuid("subscription_id").notNull(),
-        cardToken: text("card_token").notNull(),
+        cardId: uuid("card_id"),
         orderReference: text("order_reference").notNull(),
         amount: decimal("amount", {
             mode: "string",
@@ -303,6 +334,10 @@ export const payments = pgTable(
             foreignColumns: [subscribers.subscriberId],
         }).onDelete("cascade"),
         foreignKey({
+            columns: [table.cardId],
+            foreignColumns: [subscriberCards.id],
+        }).onDelete("set null"),
+        foreignKey({
             columns: [table.appId],
             foreignColumns: [applications.id],
         }).onDelete("cascade"),
@@ -320,6 +355,7 @@ export const applicationLogs = pgTable(
             .primaryKey()
             .$defaultFn(() => uuidv7()),
         appId: uuid("app_id").notNull(),
+        subscriberId: bigint("subscriber_id", { mode: "bigint" }),
         event: text("event").notNull(),
         description: text("description"),
         metadata: jsonb("metadata").default({}),
@@ -333,22 +369,36 @@ export const applicationLogs = pgTable(
             columns: [table.appId],
             foreignColumns: [applications.id],
         }).onDelete("cascade"),
+        foreignKey({
+            columns: [table.subscriberId],
+            foreignColumns: [subscribers.subscriberId],
+        }).onDelete("set null"),
     ],
 );
 
 // Analytics
-export const analyticsTable = pgTable("analytics", {
-    date: date("date", { mode: "date" }).notNull().unique(),
-    periodType: smallint("period_type").$type<AnalyticsPeriodType>().notNull(),
-    totalRevenue: decimal("total_revenue", {
-        mode: "string",
-        precision: 15,
-        scale: 4,
-    }).notNull(),
-    newUsers: integer("new_users").notNull(),
-    lostUsers: integer("lost_users").notNull(),
-    ongoingSubscriptions: integer("ongoing_subscriptions").notNull(),
-    // metrics: jsonb("metrics")
-    //     .notNull()
-    //     .default(sql`'{}'`),
-});
+export const analyticsTable = pgTable(
+    "analytics",
+    {
+        date: date("date", { mode: "date" }).notNull().unique(),
+        appId: uuid("app_id").notNull(),
+        periodType: smallint("period_type").$type<AnalyticsPeriodType>().notNull(),
+        totalRevenue: decimal("total_revenue", {
+            mode: "string",
+            precision: 15,
+            scale: 4,
+        }).notNull(),
+        newUsers: integer("new_users").notNull(),
+        lostUsers: integer("lost_users").notNull(),
+        ongoingSubscriptions: integer("ongoing_subscriptions").notNull(),
+        // metrics: jsonb("metrics")
+        //     .notNull()
+        //     .default(sql`'{}'`),
+    },
+    (table) => [
+        foreignKey({
+            columns: [table.appId],
+            foreignColumns: [applications.id],
+        }).onDelete("cascade"),
+    ],
+);

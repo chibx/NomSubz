@@ -47,7 +47,13 @@ export async function POST(
         appDB
             .update(subscriptions)
             .set({ cancelAtEnd: true })
-            .where(and(eq(subscriptions.subscriberId, subscriberId), eq(subscriptions.id, subscriptionId))),
+            .where(
+                and(
+                    eq(subscriptions.appId, appId),
+                    eq(subscriptions.subscriberId, subscriberId),
+                    eq(subscriptions.id, subscriptionId),
+                ),
+            ),
     )();
 
     if (error$3 !== null) {

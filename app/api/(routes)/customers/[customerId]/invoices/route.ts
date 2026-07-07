@@ -86,7 +86,7 @@ export async function GET(req: NextRequest, ctx: RouteContext<"/api/customers/[c
             .from(payments)
             .innerJoin(subscriptions, eq(subscriptions.id, payments.subscriptionId))
             .innerJoin(plans, eq(plans.id, subscriptions.planId))
-            .where(and(...conditions))
+            .where(and(eq(subscriptions.appId, appId), ...conditions))
             .orderBy(desc(payments.createdAt))
             .limit(count + 1),
     )();

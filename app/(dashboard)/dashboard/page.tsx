@@ -6,10 +6,10 @@ import { getAnalytics, whoami, type Analytics } from "@/app/lib/api";
 
 // Dummy data shown while backend analytics route is pending
 const DUMMY: Analytics = {
-  TotalRevenue: 2400000,
-  NewUsers: 48,
-  LostUsers: 3,
-  OngoingSubscriptions: 127,
+  totalRevenue: 2400000,
+  newUsers: 48,
+  lostUsers: 3,
+  ongoingSubscriptions: 127,
 };
 
 const NAV_CARDS = [
@@ -36,10 +36,20 @@ export default function DashboardHomePage() {
     Promise.all([whoami(), getAnalytics()]).then(([whoamiRes, analyticsRes]) => {
       if (!mounted) return;
       setAppId(whoamiRes.data?.app_id ?? null);
-      if (analyticsRes.data) {
-        setAnalytics(analyticsRes.data);
+      if (analyticsRes.data && analyticsRes.data.length > 0) {
+        // Sum metrics from array for dashboard display
+        const summed = analyticsRes.data.reduce(
+          (acc, curr) => ({
+            totalRevenue: acc.totalRevenue + curr.totalRevenue,
+            newUsers: acc.newUsers + curr.newUsers,
+            lostUsers: acc.lostUsers + curr.lostUsers,
+            ongoingSubscriptions: acc.ongoingSubscriptions + curr.ongoingSubscriptions,
+          }),
+          { totalRevenue: 0, newUsers: 0, lostUsers: 0, ongoingSubscriptions: 0 }
+        );
+        setAnalytics(summed);
       } else {
-        // Backend route not yet live, show dummy so the UI looks real
+        // Backend route not yet live or no data, show dummy so the UI looks real
         setAnalytics(DUMMY);
         setUsingDummy(true);
       }
@@ -49,10 +59,10 @@ export default function DashboardHomePage() {
   }, []);
 
   const stats = [
-    { label: "Total revenue", value: analytics ? formatNaira(analytics.TotalRevenue) : "", change: "+12% this month" },
-    { label: "New customers", value: analytics?.NewUsers ?? "", change: "+8 this week" },
-    { label: "Lost customers", value: analytics?.LostUsers ?? "", change: "Churn 2.3%" },
-    { label: "Active subscriptions", value: analytics?.OngoingSubscriptions ?? "", change: "127 running" },
+    { label: "Total revenue", value: analytics ? formatNaira(analytics.totalRevenue) : "", change: "+12% this month" },
+    { label: "New customers", value: analytics?.newUsers ?? "", change: "+8 this week" },
+    { label: "Lost customers", value: analytics?.lostUsers ?? "", change: "Churn 2.3%" },
+    { label: "Active subscriptions", value: analytics?.ongoingSubscriptions ?? "", change: "127 running" },
   ];
 
   return (

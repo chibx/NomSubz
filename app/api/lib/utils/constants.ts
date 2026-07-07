@@ -25,13 +25,17 @@ export const STATUS_FORBIDDEN = 403;
 export const STATUS_NOT_FOUND = 404;
 export const STATUS_OK = 200;
 
+export const NAIRA = "NGN";
+
 export const subscriptionDurations = Object.freeze<Record<PlanType, number>>({
     weekly: DAYS_7,
     monthly: 30 * DAY_1,
     annually: 365.25 * DAY_1,
 });
 
+export const APIKEY_PREFIX_LENGTH = 8;
+export const APIKEY_SECRET_LENGTH = 24;
 /** 8 (prefix) + 1 (-) + 24 (hashed secret) */
-export const APIKEY_LENGTH = 33;
+export const APIKEY_LENGTH = APIKEY_PREFIX_LENGTH + 1 + APIKEY_SECRET_LENGTH;
 
 export const OTP_BACKUP_CODES_COUNT = 8;

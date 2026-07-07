@@ -31,10 +31,10 @@ export type ApplicationLogMeta = {
 };
 
 export type Analytics = {
-    TotalRevenue: number;
-    NewUsers: number;
-    LostUsers: number;
-    OngoingSubscriptions: number;
+    totalRevenue: number;
+    newUsers: number;
+    lostUsers: number;
+    ongoingSubscriptions: number;
 };
 
 export type JWTField = {
@@ -66,6 +66,7 @@ export interface ParsedDbError {
 export enum WebHookTypes {
     PLAN_CHANGE_UPGRADE = "Plan Change - Upgrade",
     PLAN_SUBSCRIPTION = "Plan Subscription",
+    RESUBSCRIBE = "Resubscribe",
 }
 
 export type PlanUpgradeWebHook = {
@@ -100,4 +101,36 @@ export type PlanSubscriptionWebhook = {
       }
 );
 
-export type WebHookVariants = PlanUpgradeWebHook | PlanSubscriptionWebhook;
+export type ProcessPaymentWebHook = {
+    type: WebHookTypes.RESUBSCRIBE;
+    planId: string;
+    amountToPay: string;
+    userRemaining?: string;
+    subscriptionId: string;
+    subscriberId: string;
+    appId: string;
+    operationDate: string;
+    transactionId: string;
+};
+
+export type WebHookVariants = PlanUpgradeWebHook | PlanSubscriptionWebhook | ProcessPaymentWebHook;
+
+export type ProcessPaymentJobData = {
+    appId: string;
+    subscriptionId: string;
+    endTime: string;
+};
+
+export type DunningJobData = {
+    appId: string;
+    subscriptionId: string;
+    subscriberId: string;
+    attempt: number;
+    initialEndTime: string;
+};
+
+export type AttemptReCharge = {
+    appId: string;
+    subscriptionId: string;
+    initialEndTime: string;
+};

@@ -10,8 +10,10 @@ import { doPlanSubscriptionWebHook, doPlanUpgradeWebHook } from "./webhook";
 // The endpoint Nomba hits when an asynchronous payment succeeds or fails.
 export async function POST(req: NextRequest) {
     logger.debug("NOMBA WEBHOOK RECEIVED");
-    const signature = req.headers.get("nomba-signature");
+    // TODO: This is for testing in my logs
     const rawBody = await req.text();
+    logger.info("Webhook parsed successfully", rawBody);
+    const signature = req.headers.get("nomba-signature");
     const [webhook, err$1] = await toGoErrorRet(() => parseWebhookEvent(rawBody, signature!, nombaWebhookSecret))();
     if (err$1 !== null) {
         if (err$1 instanceof FriendlyError) {
@@ -24,6 +26,7 @@ export async function POST(req: NextRequest) {
         }
         return structuredResponse(STATUS_INTERNAL_SERVER_ERROR, DUMMY_500_MESSAGE, null);
     }
+
     if (webhook.event_type === EventType.PAYMENT_SUCCESS) {
         const data = webhook.data;
         const order = data?.order;

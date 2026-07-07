@@ -60,7 +60,13 @@ export async function GET(req: NextRequest, ctx: RouteContext<"/api/customers/[c
             .from(payments)
             .innerJoin(subscriptions, eq(subscriptions.id, payments.subscriptionId))
             .innerJoin(plans, eq(plans.id, subscriptions.planId))
-            .where(and(eq(payments.subscriberId, subscriberId), eq(payments.id, invoiceId))),
+            .where(
+                and(
+                    eq(subscriptions.appId, appId),
+                    eq(payments.subscriberId, subscriberId),
+                    eq(payments.id, invoiceId),
+                ),
+            ),
     )();
 
     if (error$3 !== null) {

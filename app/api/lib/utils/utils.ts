@@ -1,4 +1,4 @@
-import { createConsola, LogLevels } from "consola";
+import { createConsola, LogLevels } from "consola/browser";
 import { Epoch, Snowyflake } from "snowyflake";
 import { PgBoss } from "pg-boss";
 import { databaseUrl, isDebug, nombaAccountId, nombaClientId, nombaClientSecret } from "./env";
@@ -9,6 +9,7 @@ import { isValiError } from "valibot";
 import { StructuredResponse } from "../types/response";
 import { NextResponse } from "next/server";
 import { NombaClient } from "../nomba-client";
+import { APP_NAME } from "@/app/shared/constants";
 
 export class ValidationError {
     field: string;
@@ -35,6 +36,11 @@ export const nombaClient = new NombaClient({
 
 export const pgBoss = new PgBoss({
     connectionString: databaseUrl,
+    createSchema: true,
+    application_name: APP_NAME,
+    migrate: true,
+    persistWarnings: true,
+    warningRetentionDays: 7, // Auto-delete warnings older than 7 days
 });
 
 export const snowflake = new Snowyflake({
@@ -43,12 +49,12 @@ export const snowflake = new Snowyflake({
 
 export const logger = createConsola({
     level: isDebug ? LogLevels.debug : LogLevels.info,
-    stderr: process.stderr,
-    stdout: process.stdout,
+    throttleMin: 200,
+    throttle: 3,
     reporters: [
         {
-            log: (logObj, ctx) => {
-                ctx.options.stdout?.write(JSON.stringify(logObj));
+            log: (logObj) => {
+                console.log(JSON.stringify(logObj));
             },
         },
     ],
@@ -57,8 +63,7 @@ export const logger = createConsola({
 export function getEnv(key: string, defaultStr?: string): string {
     const value = process.env[key] || defaultStr;
     if (value == undefined || value.length == 0) {
-        console.error(`Environment Variable \`${key}\` not set!`);
-        process.exit(1);
+        throw Error(`Environment Variable \`${key}\` not set!`);
     }
     return value as string;
 }

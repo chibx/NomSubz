@@ -8,7 +8,7 @@ NomSubz wraps Nomba's Checkout, Tokenised Cards, Charge API, and Transfers into 
 
 ## Features
 
-- 🔁 **Subscription state machine** — `incomplete → active → past_due → paused/canceled`
+- 🔁 **Subscription state machine** — `active → past_due → paused/cancelled`
 - 💳 **Tokenized card billing** via Nomba's Charge API
 - 📉 **Dunning loop** — automatic retries and email notifications on failed payments (Day 1 / Day 3 / Day 7)
 - ⏸️ **Delayed pause** — users keep access until the end of their paid period
@@ -164,10 +164,16 @@ npm run dev
 ### Environment Variables
 
 ```
-DATABASE_URL=
-NOMBA_API_KEY=
-NOMBA_WEBHOOK_SECRET=
-INTERNAL_API_KEY_SALT=
+DATABASE_URL=""
+SECRET_KEY=""
+DEBUG="0" # or '1'
+
+NOMBA_ACCOUNT_ID=""
+NOMBA_CLIENT_ID=""
+NOMBA_SECRET=""
+NOMBA_WH_SECRET=""
+
+MIG_DATABASE_URL="" # Special migration url
 ```
 
 ---

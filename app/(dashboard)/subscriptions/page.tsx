@@ -9,7 +9,7 @@ import { EmptyState } from "@/app/components/EmptyState";
 const FILTERS: { label: string; value: SubscriptionStatus | "all" }[] = [
   { label: "All", value: "all" },
   { label: "Active", value: "active" },
-  { label: "Pending", value: "pending" },
+  { label: "Past Due", value: "past_due" },
   { label: "Paused", value: "paused" },
   { label: "Cancelled", value: "cancelled" },
 ];

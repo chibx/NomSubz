@@ -18,7 +18,7 @@ export const DUMMY_PLANS: Plan[] = [
   { id: "plan_01", name: "Starter",     amount: "2500",  currency: "NGN", status: "enabled",  type: "monthly" },
   { id: "plan_02", name: "Growth",      amount: "7500",  currency: "NGN", status: "enabled",  type: "monthly" },
   { id: "plan_03", name: "Pro",         amount: "15000", currency: "NGN", status: "enabled",  type: "monthly" },
-  { id: "plan_04", name: "Enterprise",  amount: "50000", currency: "NGN", status: "enabled",  type: "yearly"  },
+  { id: "plan_04", name: "Enterprise",  amount: "50000", currency: "NGN", status: "enabled",  type: "annually" },
   { id: "plan_05", name: "Legacy Free", amount: "0",     currency: "NGN", status: "disabled", type: "monthly" },
 ];
 
@@ -28,7 +28,7 @@ export const DUMMY_SUBSCRIPTIONS: Subscription[] = [
   { id: "sid_03", amount: "NGN 15,000", createdAt: "2025-02-14T00:00:00Z", startTime: "2025-02-14T00:00:00Z", endTime: "2025-08-14T00:00:00Z", status: "active",    cancelAtEnd: false, planId: "plan_03", planName: "Pro",        planType: "monthly" },
   { id: "sid_04", amount: "NGN 7,500",  createdAt: "2024-08-20T00:00:00Z", startTime: "2024-08-20T00:00:00Z", endTime: "2025-02-20T00:00:00Z", status: "past_due",  cancelAtEnd: false, planId: "plan_02", planName: "Growth",     planType: "monthly" },
   { id: "sid_05", amount: "NGN 2,500",  createdAt: "2025-03-01T00:00:00Z", startTime: "2025-03-01T00:00:00Z", endTime: "2025-09-01T00:00:00Z", status: "paused",    cancelAtEnd: false, planId: "plan_01", planName: "Starter",    planType: "monthly" },
-  { id: "sid_06", amount: "NGN 50,000", createdAt: "2024-06-15T00:00:00Z", startTime: "2024-06-15T00:00:00Z", endTime: "2025-06-15T00:00:00Z", status: "cancelled", cancelAtEnd: false, planId: "plan_04", planName: "Enterprise", planType: "yearly"  },
+  { id: "sid_06", amount: "NGN 50,000", createdAt: "2024-06-15T00:00:00Z", startTime: "2024-06-15T00:00:00Z", endTime: "2025-06-15T00:00:00Z", status: "cancelled", cancelAtEnd: false, planId: "plan_04", planName: "Enterprise", planType: "annually" },
   { id: "sid_07", amount: "NGN 15,000", createdAt: "2025-04-01T00:00:00Z", startTime: "2025-04-01T00:00:00Z", endTime: "2025-10-01T00:00:00Z", status: "active",    cancelAtEnd: false, planId: "plan_03", planName: "Pro",        planType: "monthly" },
   { id: "sid_08", amount: "NGN 7,500",  createdAt: "2025-05-10T00:00:00Z", startTime: "2025-05-10T00:00:00Z", endTime: "2025-11-10T00:00:00Z", status: "active",    cancelAtEnd: false, planId: "plan_02", planName: "Growth",     planType: "monthly" },
 ];

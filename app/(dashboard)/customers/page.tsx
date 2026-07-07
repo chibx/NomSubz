@@ -5,11 +5,13 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { listCustomers, createCustomer, type Subscriber } from "@/app/lib/api";
 import { EmptyState } from "@/app/components/EmptyState";
+import { DUMMY_CUSTOMERS } from "@/app/lib/dummy";
 
 export default function CustomersPage() {
   const router = useRouter();
   const [customers, setCustomers] = useState<Subscriber[]>([]);
   const [loading, setLoading] = useState(true);
+  const [usingDummy, setUsingDummy] = useState(false);
   const [userId, setUserId] = useState("");
   const [email, setEmail] = useState("");
   const [creating, setCreating] = useState(false);
@@ -23,7 +25,12 @@ export default function CustomersPage() {
     let mounted = true;
     listCustomers().then((res) => {
       if (!mounted) return;
-      setCustomers(res.data ?? []);
+      if (res.data && res.data.length > 0) {
+        setCustomers(res.data);
+      } else {
+        setCustomers(DUMMY_CUSTOMERS);
+        setUsingDummy(true);
+      }
       setLoading(false);
     });
     return () => { mounted = false; };
@@ -53,8 +60,17 @@ export default function CustomersPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-extrabold tracking-tight text-foreground">Customers</h1>
-      <p className="mt-1 text-sm text-muted">Subscribers belonging to your business.</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-extrabold tracking-tight text-foreground">Customers</h1>
+          <p className="mt-1 text-sm text-muted">Subscribers belonging to your business.</p>
+        </div>
+        {usingDummy && (
+          <span className="rounded-full border border-status-pending-bg bg-status-pending-bg px-3 py-1 text-[11px] font-semibold text-status-pending-fg">
+            Sample data
+          </span>
+        )}
+      </div>
 
       <form onSubmit={handleCreate} className="mt-6 flex max-w-xl flex-wrap items-end gap-3">
         <div className="flex-1 min-w-[160px]">

@@ -5,22 +5,38 @@ import { useEffect, useState } from "react";
 import { listInvoices, type Invoice } from "@/app/lib/api";
 import { StatusBadge } from "@/app/components/StatusBadge";
 import { EmptyState } from "@/app/components/EmptyState";
+import { DUMMY_INVOICES } from "@/app/lib/dummy";
 
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
+  const [usingDummy, setUsingDummy] = useState(false);
 
   useEffect(() => {
     listInvoices().then((res) => {
-      setInvoices(res.data ?? []);
+      if (res.data && res.data.length > 0) {
+        setInvoices(res.data);
+      } else {
+        setInvoices(DUMMY_INVOICES);
+        setUsingDummy(true);
+      }
       setLoading(false);
     });
   }, []);
 
   return (
     <div>
-      <h1 className="text-2xl font-extrabold tracking-tight text-foreground">Invoices</h1>
-      <p className="mt-1 text-sm text-muted">Payment history across all your customers.</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-extrabold tracking-tight text-foreground">Invoices</h1>
+          <p className="mt-1 text-sm text-muted">Payment history across all your customers.</p>
+        </div>
+        {usingDummy && (
+          <span className="rounded-full border border-status-pending-bg bg-status-pending-bg px-3 py-1 text-[11px] font-semibold text-status-pending-fg">
+            Sample data
+          </span>
+        )}
+      </div>
 
       <div className="mt-6">
         {loading ? (

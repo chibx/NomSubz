@@ -5,16 +5,23 @@ import { useEffect, useState } from "react";
 import { listPlans, type Plan } from "@/app/lib/api";
 import { StatusBadge } from "@/app/components/StatusBadge";
 import { EmptyState } from "@/app/components/EmptyState";
+import { DUMMY_PLANS } from "@/app/lib/dummy";
 
 export default function PlansPage() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
+  const [usingDummy, setUsingDummy] = useState(false);
 
   useEffect(() => {
     let mounted = true;
     listPlans().then((res) => {
       if (!mounted) return;
-      setPlans(res.data ?? []);
+      if (res.data && res.data.length > 0) {
+        setPlans(res.data);
+      } else {
+        setPlans(DUMMY_PLANS);
+        setUsingDummy(true);
+      }
       setLoading(false);
     });
     return () => { mounted = false; };
@@ -31,6 +38,11 @@ export default function PlansPage() {
           className="rounded-[7px] bg-brand px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-hover">
           Create plan
         </Link>
+        {usingDummy && (
+          <span className="rounded-full border border-status-pending-bg bg-status-pending-bg px-3 py-1 text-[11px] font-semibold text-status-pending-fg">
+            Sample data
+          </span>
+        )}
       </div>
 
       <div className="mt-6">

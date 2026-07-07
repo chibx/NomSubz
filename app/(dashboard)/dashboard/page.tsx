@@ -36,10 +36,20 @@ export default function DashboardHomePage() {
     Promise.all([whoami(), getAnalytics()]).then(([whoamiRes, analyticsRes]) => {
       if (!mounted) return;
       setAppId(whoamiRes.data?.app_id ?? null);
-      if (analyticsRes.data) {
-        setAnalytics(analyticsRes.data);
+      if (analyticsRes.data && analyticsRes.data.length > 0) {
+        // Sum metrics from array for dashboard display
+        const summed = analyticsRes.data.reduce(
+          (acc, curr) => ({
+            totalRevenue: acc.totalRevenue + curr.totalRevenue,
+            newUsers: acc.newUsers + curr.newUsers,
+            lostUsers: acc.lostUsers + curr.lostUsers,
+            ongoingSubscriptions: acc.ongoingSubscriptions + curr.ongoingSubscriptions,
+          }),
+          { totalRevenue: 0, newUsers: 0, lostUsers: 0, ongoingSubscriptions: 0 }
+        );
+        setAnalytics(summed);
       } else {
-        // Backend route not yet live, show dummy so the UI looks real
+        // Backend route not yet live or no data, show dummy so the UI looks real
         setAnalytics(DUMMY);
         setUsingDummy(true);
       }

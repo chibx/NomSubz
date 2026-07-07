@@ -303,8 +303,13 @@ export function createWebhookEndpoint(url: string) {
 
 // ---- Analytics -- no route yet ----
 
-export function getAnalytics() {
-    return jsonRequest<Analytics>("/analytics");
+export function getAnalytics(params?: { start_date?: string; end_date?: string; periodType?: string }) {
+    const qs = new URLSearchParams();
+    if (params?.start_date) qs.set("start_date", params.start_date);
+    if (params?.end_date) qs.set("end_date", params.end_date);
+    if (params?.periodType) qs.set("periodType", params.periodType);
+    const query = qs.toString() ? `?${qs.toString()}` : "";
+    return jsonRequest<Analytics[]>(`/analytics${query}`);
 }
 
 // ---- Settings / API keys -- no routes yet ----

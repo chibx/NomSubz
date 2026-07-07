@@ -1,6 +1,6 @@
 import { InferEnum } from "drizzle-orm";
 import { ValidationError } from "../utils/utils";
-import { NullT, PlanStatus, PlanType } from "./types";
+import { NullT, PlanStatus, PlanType, Analytics } from "./types";
 import { subscriptionsStatusEnum } from "../db/schema";
 
 export type StructuredResponse<T = unknown> = {
@@ -177,4 +177,9 @@ export type GetApiKeysResponse = {
         name: string;
         createdAt: string;
     }>;
+};
+
+/** GET /api/analytics */
+export type GetAnalyticsResponse = {
+    analytics: Analytics[];
 };

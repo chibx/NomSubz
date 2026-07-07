@@ -377,18 +377,28 @@ export const applicationLogs = pgTable(
 );
 
 // Analytics
-export const analyticsTable = pgTable("analytics", {
-    date: date("date", { mode: "date" }).notNull().unique(),
-    periodType: smallint("period_type").$type<AnalyticsPeriodType>().notNull(),
-    totalRevenue: decimal("total_revenue", {
-        mode: "string",
-        precision: 15,
-        scale: 4,
-    }).notNull(),
-    newUsers: integer("new_users").notNull(),
-    lostUsers: integer("lost_users").notNull(),
-    ongoingSubscriptions: integer("ongoing_subscriptions").notNull(),
-    // metrics: jsonb("metrics")
-    //     .notNull()
-    //     .default(sql`'{}'`),
-});
+export const analyticsTable = pgTable(
+    "analytics",
+    {
+        date: date("date", { mode: "date" }).notNull().unique(),
+        appId: uuid("app_id").notNull(),
+        periodType: smallint("period_type").$type<AnalyticsPeriodType>().notNull(),
+        totalRevenue: decimal("total_revenue", {
+            mode: "string",
+            precision: 15,
+            scale: 4,
+        }).notNull(),
+        newUsers: integer("new_users").notNull(),
+        lostUsers: integer("lost_users").notNull(),
+        ongoingSubscriptions: integer("ongoing_subscriptions").notNull(),
+        // metrics: jsonb("metrics")
+        //     .notNull()
+        //     .default(sql`'{}'`),
+    },
+    (table) => [
+        foreignKey({
+            columns: [table.appId],
+            foreignColumns: [applications.id],
+        }).onDelete("cascade"),
+    ],
+);

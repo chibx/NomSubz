@@ -15,11 +15,11 @@ export const DUMMY_CUSTOMERS: Subscriber[] = [
 ];
 
 export const DUMMY_PLANS: Plan[] = [
-  { id: "plan_01", name: "Starter",    amount: "2500",  currency: "NGN", status: "active",   type: "monthly" },
-  { id: "plan_02", name: "Growth",     amount: "7500",  currency: "NGN", status: "active",   type: "monthly" },
-  { id: "plan_03", name: "Pro",        amount: "15000", currency: "NGN", status: "active",   type: "monthly" },
-  { id: "plan_04", name: "Enterprise", amount: "50000", currency: "NGN", status: "active",   type: "yearly"  },
-  { id: "plan_05", name: "Legacy Free", amount: "0",   currency: "NGN", status: "inactive", type: "monthly" },
+  { id: "plan_01", name: "Starter",     amount: "2500",  currency: "NGN", status: "enabled",  type: "monthly" },
+  { id: "plan_02", name: "Growth",      amount: "7500",  currency: "NGN", status: "enabled",  type: "monthly" },
+  { id: "plan_03", name: "Pro",         amount: "15000", currency: "NGN", status: "enabled",  type: "monthly" },
+  { id: "plan_04", name: "Enterprise",  amount: "50000", currency: "NGN", status: "enabled",  type: "yearly"  },
+  { id: "plan_05", name: "Legacy Free", amount: "0",     currency: "NGN", status: "disabled", type: "monthly" },
 ];
 
 export const DUMMY_SUBSCRIPTIONS: Subscription[] = [

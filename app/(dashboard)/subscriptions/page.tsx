@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { listCustomers, listSubscriptions, type Subscription, type SubscriptionStatus } from "@/app/lib/api";
 import { StatusBadge } from "@/app/components/StatusBadge";
 import { EmptyState } from "@/app/components/EmptyState";
+import { DUMMY_SUBSCRIPTIONS } from "@/app/lib/dummy";
 
 const FILTERS: { label: string; value: SubscriptionStatus | "all" }[] = [
   { label: "All", value: "all" },
@@ -22,6 +23,7 @@ export default function SubscriptionsPage() {
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [usingDummy, setUsingDummy] = useState(false);
 
   async function fetchPage(cid: string, status: SubscriptionStatus | "all", cursorParam?: string) {
     const res = await listSubscriptions(cid, {
@@ -40,9 +42,14 @@ export default function SubscriptionsPage() {
       const firstCustomer = customersRes.data?.[0];
 
       if (!firstCustomer) {
-        setSubscriptions([]);
+        // No customers from API — show dummy subscriptions
+        const filtered = filter === "all"
+          ? DUMMY_SUBSCRIPTIONS
+          : DUMMY_SUBSCRIPTIONS.filter((s) => s.status === filter);
+        setSubscriptions(filtered);
         setCursor(null);
         setHasMore(false);
+        setUsingDummy(true);
         setLoading(false);
         return;
       }
@@ -50,9 +57,18 @@ export default function SubscriptionsPage() {
       setCustomerId(firstCustomer.subscriberId);
       const page = await fetchPage(firstCustomer.subscriberId, filter);
       if (!mounted) return;
-      setSubscriptions(page?.subscriptions ?? []);
-      setCursor(page?.cursor ?? null);
-      setHasMore(page?.nextPage !== null);
+
+      if (!page || page.subscriptions.length === 0) {
+        const filtered = filter === "all"
+          ? DUMMY_SUBSCRIPTIONS
+          : DUMMY_SUBSCRIPTIONS.filter((s) => s.status === filter);
+        setSubscriptions(filtered);
+        setUsingDummy(true);
+      } else {
+        setSubscriptions(page.subscriptions);
+        setCursor(page.cursor ?? null);
+        setHasMore(page.nextPage !== null);
+      }
       setLoading(false);
     });
 
@@ -71,8 +87,17 @@ export default function SubscriptionsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-extrabold tracking-tight text-foreground">Subscriptions</h1>
-      <p className="mt-1 text-sm text-muted">All subscriptions across your customers.</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-extrabold tracking-tight text-foreground">Subscriptions</h1>
+          <p className="mt-1 text-sm text-muted">All subscriptions across your customers.</p>
+        </div>
+        {usingDummy && (
+          <span className="rounded-full border border-status-pending-bg bg-status-pending-bg px-3 py-1 text-[11px] font-semibold text-status-pending-fg">
+            Sample data
+          </span>
+        )}
+      </div>
 
       <div className="mt-5 flex gap-2 flex-wrap">
         {FILTERS.map((f) => (
